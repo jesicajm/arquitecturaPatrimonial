@@ -1,0 +1,2627 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABBA - Arquitectura Patrimonial</title>
+    <link rel="icon" type="image/png" href="icon-abba.png">
+    <link rel="apple-touch-icon" href="icon-abba.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        /* ── Campos calculados (readonly) ── */
+        .input-calculated {
+            background: #f0fdf4;
+            border-color: #86efac !important;
+            color: #15803d;
+            font-weight: 600;
+            cursor: default;
+        }
+
+        /* ── Toggle genera ingreso pasivo ── */
+        .toggle-group {
+            display: flex;
+            gap: 0;
+            border: 1.5px solid #d1d5db;
+            border-radius: 8px;
+            overflow: hidden;
+            width: fit-content;
+        }
+        .toggle-option {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            margin: 0;
+        }
+        .toggle-option input[type="radio"] {
+            display: none;
+        }
+        .toggle-label {
+            display: block;
+            padding: 8px 24px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #6b7280;
+            background: #fff;
+            transition: background 0.15s, color 0.15s;
+            border-right: 1.5px solid #d1d5db;
+            user-select: none;
+        }
+        .toggle-option:last-child .toggle-label {
+            border-right: none;
+        }
+        .toggle-option input[type="radio"]:checked + .toggle-label {
+            background: #1a4d7c;
+            color: #fff;
+        }
+
+        /* ── C1 Seguro de Vida — UI expandida ── */
+        .c1v-section { display:flex; flex-direction:column; gap:10px; }
+        .c1v-block {
+            background: rgba(255,255,255,.03);
+            border: 1px solid rgba(255,255,255,.07);
+            border-radius: 10px;
+            padding: 12px 14px;
+        }
+        .c1v-block-title {
+            font-size: .72rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .06em; color: #64748b; margin-bottom: 8px;
+        }
+        .c1v-row {
+            display: flex; justify-content: space-between; align-items: baseline;
+            gap: 8px; padding: 3px 0; font-size: .83rem; flex-wrap: wrap;
+        }
+        .c1v-row-name { color: #94a3b8; flex: 1; min-width: 120px; }
+        .c1v-row-val  { font-weight: 600; color: #e2e8f0; white-space: nowrap; }
+        .c1v-row-tag  { font-size: .72rem; font-weight: 600; padding: 1px 7px;
+                        border-radius: 20px; white-space: nowrap; }
+        .c1v-tag-ok  { background: rgba(52,211,153,.12); color: #34d399; }
+        .c1v-tag-no  { background: rgba(100,116,139,.12); color: #64748b; }
+        .c1v-tag-inc { background: rgba(239,68,68,.12);  color: #f87171; }
+        .c1v-divider { border: none; border-top: 1px solid rgba(255,255,255,.07);
+                       margin: 6px 0; }
+        .c1v-total-row { font-weight: 700; font-size: .88rem; color: #e2e8f0;
+                         display: flex; justify-content: space-between; padding-top: 2px; }
+        .c1v-total-val { color: #7dd3fc; }
+        .c1v-edit-row {
+            margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        }
+        .c1v-edit-lbl { font-size: .78rem; color: #64748b; white-space: nowrap; }
+        .c1v-edit-input {
+            flex: 1; min-width: 140px; background: rgba(255,255,255,.06);
+            border: 1.5px solid rgba(255,255,255,.12); border-radius: 7px;
+            padding: 6px 10px; font-size: .83rem; font-weight: 600; color: #e2e8f0;
+            outline: none;
+        }
+        .c1v-edit-input:focus { border-color: #4a90d9; }
+        .c1v-edit-unit { font-size: .75rem; color: #64748b; }
+        .c1v-desglose { display:flex; flex-direction:column; gap:4px; margin-top:2px; }
+        .c1v-des-row {
+            display: flex; justify-content: space-between; font-size: .82rem;
+            padding: 2px 0; border-bottom: 1px dashed rgba(255,255,255,.05);
+        }
+        .c1v-des-row:last-child { border-bottom: none; }
+        .c1v-des-lbl { color: #94a3b8; }
+        .c1v-des-val { font-weight: 600; color: #e2e8f0; }
+        .c1v-des-total { color: #f0c040; font-weight: 800; font-size: .88rem; }
+        .c1v-warning {
+            background: rgba(234,179,8,.08); border: 1px solid rgba(234,179,8,.2);
+            border-radius: 8px; padding: 10px 12px; font-size: .78rem; color: #fbbf24;
+            line-height: 1.5; margin-top: 6px;
+        }
+        .c1v-warning strong { display: block; margin-bottom: 3px; }
+        .c1v-skandia-input-wrap {
+            display: flex; gap: 8px; align-items: center; margin-top: 6px;
+        }
+        .c1v-cobertura-total {
+            margin-top: 6px; background: rgba(74,144,217,.08);
+            border: 1px solid rgba(74,144,217,.2); border-radius: 8px;
+            padding: 10px 14px; display: flex; flex-direction: column; gap: 4px;
+        }
+        .c1v-cob-tot-row { display:flex; justify-content:space-between;
+                           font-size:.82rem; color: #94a3b8; }
+        .c1v-cob-tot-total { font-weight: 800; font-size: .9rem; color: #7dd3fc; }
+        .c1v-gap-badge {
+            margin-top: 8px; border-radius: 8px; padding: 10px 14px;
+            font-size: .85rem; font-weight: 700; text-align: center;
+        }
+        .c1v-gap-ok   { background:rgba(52,211,153,.1);  color:#34d399; border:1px solid rgba(52,211,153,.25); }
+        .c1v-gap-warn { background:rgba(234,179,8,.1);   color:#fbbf24; border:1px solid rgba(234,179,8,.25); }
+        .c1v-gap-mal  { background:rgba(239,68,68,.1);   color:#f87171; border:1px solid rgba(239,68,68,.25); }
+
+        /* ── Seguro deudor en modal de activo ── */
+        #seguro-deudor-group .toggle-group { margin-top: 6px; }
+
+        /* ── Rol empresarial — radio pills ── */
+        #rol-empresarial-group { display:none; }
+        .rol-emp-options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .rol-emp-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1.5px solid rgba(255,255,255,.10);
+            background: rgba(255,255,255,.03);
+            cursor: pointer;
+            transition: border-color .15s, background .15s;
+        }
+        .rol-emp-option:hover {
+            border-color: rgba(99,179,237,.45);
+            background: rgba(99,179,237,.06);
+        }
+        .rol-emp-option input[type="radio"] { display:none; }
+        .rol-emp-option input[type="radio"]:checked ~ .rol-emp-text .rol-emp-label {
+            color: #7dd3fc;
+        }
+        .rol-emp-option input[type="radio"]:checked ~ .rol-emp-radio-dot {
+            border-color: #7dd3fc;
+            background: #7dd3fc;
+        }
+        .rol-emp-option:has(input:checked) {
+            border-color: rgba(125,211,252,.45);
+            background: rgba(125,211,252,.07);
+        }
+        .rol-emp-radio-dot {
+            width: 16px;
+            height: 16px;
+            min-width: 16px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,.25);
+            background: transparent;
+            margin-top: 2px;
+            transition: border-color .15s, background .15s;
+        }
+        .rol-emp-text { display:flex; flex-direction:column; gap:2px; }
+        .rol-emp-label {
+            font-size: .875rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            line-height: 1.3;
+        }
+        .rol-emp-hint {
+            font-size: .76rem;
+            color: #64748b;
+            line-height: 1.35;
+        }
+
+
+        .td-subtipo { font-size: 0.8rem; line-height: 1.4; }
+        .asset-which { color: #6b7280; font-size: 0.75rem; display: block; }
+        .td-actions { white-space: nowrap; }
+        .btn-icon-danger:hover { color: #dc2626 !important; }
+        .text-red { color: #dc2626; }
+        .text-green { color: #16a34a; }
+
+        /* ── Fila de totales ── */
+        .totals-row td {
+            background: #f8fafc;
+            border-top: 2px solid #e2e8f0;
+            padding: 10px 12px;
+            font-size: 0.85rem;
+        }
+        .totals-secondary td {
+            background: #f1f5f9;
+            border-top: none;
+            font-size: 0.78rem;
+            color: #64748b;
+        }
+
+        /* ── Badges de liquidez y tipo ── */
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; }
+        .badge-green  { background: #dcfce7; color: #15803d; }
+        .badge-yellow { background: #fef9c3; color: #a16207; }
+        .badge-orange { background: #ffedd5; color: #c2410c; }
+        .badge-red    { background: #fee2e2; color: #b91c1c; }
+        .badge-gray   { background: #f3f4f6; color: #374151; }
+        .badge-tipo   { font-size: 0.7rem; padding: 2px 6px; background: #eff6ff; color: #1d4ed8; border-radius: 4px; }
+
+        /* ═══════════════════════════════════════════════
+           DASHBOARD — Sistema de 6 bloques patrimoniales
+           Paleta oscura coherente con el sidebar de ABBA
+        ════════════════════════════════════════════════ */
+
+        /* Contenedor de filas */
+        /* display:flex se aplica via .db-section-active para no romper la visibilidad
+           controlada por styles.css (.content-section / .content-section.active) */
+        #dashboard-section { padding: 24px; flex-direction: column; gap: 20px; }
+        #dashboard-section.active { display: flex; }
+        .db-row { display: grid; gap: 20px; }
+        .db-row--top    { grid-template-columns: 1.6fr 1fr; }
+        .db-row--mid    { grid-template-columns: 1fr 1fr; }
+        .db-row--charts { grid-template-columns: 1fr 1fr; }
+
+        /* Tarjeta base */
+        .db-card {
+            background: #1e2535;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .db-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #1a4d7c, #4a90d9);
+            border-radius: 16px 16px 0 0;
+        }
+        /* Tarjeta hero (Patrimonio) — acento dorado */
+        .db-card--hero {
+            background: linear-gradient(145deg, #1a2a42 0%, #0f1e35 100%);
+        }
+        .db-card--hero::before {
+            background: linear-gradient(90deg, #d4a017, #f0c040, #d4a017);
+        }
+
+        /* Label / título de bloque */
+        .db-card-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #94a3b8;
+        }
+        .db-card-label svg { flex-shrink: 0; }
+
+        /* Bloque 1 — Patrimonio */
+        .db-hero-value {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #f0c040;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+        }
+        .db-hero-secondary {
+            font-size: 1rem;
+            color: #64748b;
+            margin-top: -8px;
+        }
+        .db-breakdown {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 10px;
+            margin-top: 4px;
+        }
+        .db-breakdown-item { display: flex; flex-direction: column; gap: 2px; }
+        .db-breakdown-label { font-size: 0.72rem; color: #64748b; }
+        .db-breakdown-val { font-size: 1rem; font-weight: 700; }
+        .db-val--green { color: #34d399; }
+        .db-val--red   { color: #f87171; }
+        .db-breakdown-divider { font-size: 1.4rem; color: #334155; margin: 0 4px; }
+
+        /* Bloque 6 — Independencia financiera */
+        .db-if-numero-wrap { display: flex; flex-direction: column; gap: 3px; }
+        .db-if-numero-label { font-size: 0.72rem; color: #64748b; }
+        .db-if-numero-val { font-size: 1.4rem; font-weight: 700; color: #e2e8f0; }
+        .db-if-numero-sub { font-size: 0.7rem; color: #475569; }
+        .db-if-pct-big {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #f0c040;
+            line-height: 1;
+            letter-spacing: -0.04em;
+        }
+
+        /* Barra de progreso genérica */
+        .db-progress-wrap { display: flex; flex-direction: column; gap: 6px; }
+        .db-progress-track {
+            height: 8px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .db-progress-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: #4a90d9;
+            transition: width 0.6s cubic-bezier(.4,0,.2,1);
+        }
+        .db-fill--gold  { background: linear-gradient(90deg, #d4a017, #f0c040); }
+        .db-fill--green { background: #22c55e; }
+        .db-fill--yellow{ background: #eab308; }
+        .db-fill--red   { background: #ef4444; }
+        .db-progress-caption { font-size: 0.72rem; color: #64748b; }
+
+        /* Bloques 2 y 3 — Métrica principal + semáforo */
+        .db-metric-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .db-metric-big { font-size: 1.7rem; font-weight: 700; color: #e2e8f0; }
+
+        /* Semáforo */
+        .db-semaforo { display: flex; align-items: center; gap: 8px; }
+        .db-semaforo-dot {
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            background: #334155;
+            flex-shrink: 0;
+            box-shadow: 0 0 8px currentColor;
+        }
+        .db-semaforo--verde  .db-semaforo-dot { background: #22c55e; color: #22c55e; }
+        .db-semaforo--amarillo .db-semaforo-dot { background: #eab308; color: #eab308; }
+        .db-semaforo--rojo   .db-semaforo-dot { background: #ef4444; color: #ef4444; }
+        .db-semaforo-pct, .db-semaforo-label {
+            font-size: 0.85rem; font-weight: 600; color: #94a3b8;
+        }
+        .db-semaforo--verde  .db-semaforo-pct,
+        .db-semaforo--verde  .db-semaforo-label  { color: #22c55e; }
+        .db-semaforo--amarillo .db-semaforo-pct,
+        .db-semaforo--amarillo .db-semaforo-label { color: #eab308; }
+        .db-semaforo--rojo   .db-semaforo-pct,
+        .db-semaforo--rojo   .db-semaforo-label  { color: #ef4444; }
+
+        /* Metas de ingresos (bloque 2) */
+        .db-metas {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 12px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 10px;
+        }
+        .db-meta-item { display: flex; flex-direction: column; gap: 3px; align-items: center; text-align: center; }
+        .db-meta-year { font-size: 0.68rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+        .db-meta-target { font-size: 0.82rem; font-weight: 700; color: #e2e8f0; }
+        .db-meta-pct { font-size: 0.68rem; color: #94a3b8; }
+
+        /* Gap de liquidez (bloque 3) */
+        .db-gap-row {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 8px;
+            font-size: 0.8rem;
+        }
+        .db-gap-label { color: #94a3b8; flex: 1; }
+        .db-gap-val { font-weight: 700; color: #e2e8f0; }
+        .db-gap-val--negativo { color: #f87171; }
+        .db-liquidez-detalle {
+            display: flex; justify-content: space-between;
+            font-size: 0.75rem; color: #64748b;
+            padding-top: 4px;
+        }
+        .db-detail-val { color: #94a3b8; font-weight: 600; }
+
+        /* Gráficas (bloques 4 y 5) */
+        .db-card--chart { gap: 14px; }
+        .db-chart-inner { display: flex; align-items: center; gap: 20px; }
+        .db-donut-wrap { width: 160px; height: 160px; flex-shrink: 0; }
+        .db-chart-legend { display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 0; }
+        .db-legend-item {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.78rem; color: #94a3b8;
+        }
+        .db-legend-dot {
+            width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0;
+        }
+        .db-legend-pct { margin-left: auto; font-weight: 700; color: #e2e8f0; }
+        .db-legend-empty { font-size: 0.78rem; color: #475569; }
+
+        /* Alerta roja (bloques 4 y 5) */
+        .db-alert {
+            display: flex; align-items: flex-start; gap: 8px;
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.78rem;
+            color: #fca5a5;
+        }
+        .db-alert svg { flex-shrink: 0; margin-top: 1px; stroke: #ef4444; }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .db-row--top    { grid-template-columns: 1fr; }
+            .db-row--mid    { grid-template-columns: 1fr; }
+            .db-row--charts { grid-template-columns: 1fr; }
+            .db-hero-value { font-size: 1.8rem; }
+        }
+        @media (max-width: 640px) {
+            #dashboard-section.active { padding: 16px; gap: 14px; }
+            .db-card { padding: 18px; }
+            .db-metas { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+            .db-chart-inner { flex-direction: column; }
+            .db-donut-wrap { width: 140px; height: 140px; }
+        }
+
+        /* ═══════════════════════════════════════════════════════
+           EVALUACIÓN 4 CAPAS
+        ═══════════════════════════════════════════════════════ */
+        #capas-section { padding: 24px; flex-direction: column; gap: 24px; }
+        #capas-section.active { display: flex; }
+
+        /* Tarjeta score global ─────────────────────────────── */
+        .c4-global {
+            background: linear-gradient(145deg, #1a2a42 0%, #0f1e35 100%);
+            border: 1px solid rgba(255,255,255,.07);
+            border-radius: 16px;
+            padding: 28px 32px;
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            flex-wrap: wrap;
+            position: relative;
+            overflow: hidden;
+        }
+        .c4-global::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, #d4a017, #f0c040, #d4a017);
+            border-radius: 16px 16px 0 0;
+        }
+        .c4g-score { font-size: 3.8rem; font-weight: 800; line-height: 1; letter-spacing: -.05em; min-width: 110px; }
+        .c4g-info  { flex: 1; min-width: 160px; }
+        .c4g-lbl   { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #64748b; }
+        .c4g-etq   { font-size: 1.5rem; font-weight: 800; margin-top: 2px; }
+        .c4g-sub   { font-size: .78rem; color: #64748b; margin-top: 4px; }
+        .c4g-bars  { display: flex; flex-direction: column; gap: 7px; min-width: 200px; }
+        .c4g-bar-row { display: flex; align-items: center; gap: 7px; font-size: .73rem; color: #94a3b8; }
+        .c4g-bar-track { flex: 1; height: 6px; background: rgba(255,255,255,.07); border-radius: 999px; overflow: hidden; }
+        .c4g-bar-fill  { height: 100%; border-radius: 999px; transition: width .55s ease; }
+        .c4g-bar-pts   { font-weight: 700; color: #e2e8f0; min-width: 32px; text-align: right; font-size: .7rem; }
+
+        /* Semáforo colores ────────────────────────────────── */
+        .sc-excelente  { color: #15803d; } .sf-excelente  { background: #15803d; }
+        .sc-muybueno   { color: #22c55e; } .sf-muybueno   { background: #22c55e; }
+        .sc-aceptable  { color: #eab308; } .sf-aceptable  { background: #eab308; }
+        .sc-deficiente { color: #f97316; } .sf-deficiente { background: #f97316; }
+        .sc-critico    { color: #ef4444; } .sf-critico    { background: #ef4444; }
+
+        /* Grid de las 4 tarjetas ─────────────────────────── */
+        .c4-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 1024px) { .c4-grid { grid-template-columns: 1fr; } }
+
+        /* Tarjeta de capa ─────────────────────────────────── */
+        .c4-card {
+            background: #1e2535;
+            border: 1px solid rgba(255,255,255,.07);
+            border-radius: 16px;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        .c4-card-hd {
+            padding: 17px 22px 13px;
+            display: flex; align-items: center; gap: 13px;
+            border-bottom: 1px solid rgba(255,255,255,.055);
+        }
+        .c4-num {
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .95rem; font-weight: 800; flex-shrink: 0;
+        }
+        .c4n-1 { background: rgba(74,144,217,.18);  color: #4a90d9; }
+        .c4n-2 { background: rgba(52,211,153,.18);  color: #34d399; }
+        .c4n-3 { background: rgba(240,192,64,.18);  color: #f0c040; }
+        .c4n-4 { background: rgba(167,139,250,.18); color: #a78bfa; }
+        .c4-title  { font-size: .95rem; font-weight: 700; color: #e2e8f0; }
+        .c4-sub    { font-size: .7rem; color: #64748b; margin-top: 2px; }
+        .c4-badge  { margin-left: auto; text-align: center; }
+        .c4-badge-n { font-size: 1.75rem; font-weight: 800; line-height: 1; color: #f0c040; }
+        .c4-badge-d { font-size: .63rem; color: #475569; }
+
+        /* Preguntas ───────────────────────────────────────── */
+        .c4-body { padding: 17px 22px; display: flex; flex-direction: column; gap: 14px; }
+        .c4-q    { display: flex; flex-direction: column; gap: 7px; }
+        .c4-q-lbl {
+            font-size: .8rem; font-weight: 600; color: #cbd5e1;
+            display: flex; align-items: center; gap: 5px; flex-wrap: wrap; line-height: 1.35;
+        }
+        .c4-tag-auto {
+            font-size: .58rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+            background: rgba(74,144,217,.2); color: #4a90d9;
+            padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
+        }
+        .c4-tag-pts { margin-left: auto; font-size: .63rem; color: #475569; font-weight: 400; white-space: nowrap; }
+
+        /* Radio pills ─────────────────────────────────────── */
+        .c4-opts { display: flex; gap: 5px; flex-wrap: wrap; }
+        .c4-opt  input[type="radio"] { display: none; }
+        .c4-opt-lbl {
+            padding: 5px 11px; font-size: .73rem; font-weight: 500;
+            border: 1.5px solid rgba(255,255,255,.1); border-radius: 8px;
+            color: #94a3b8; background: rgba(255,255,255,.03);
+            cursor: pointer; transition: all .14s; user-select: none;
+        }
+        .c4-opt-lbl:hover { border-color: rgba(255,255,255,.25); color: #e2e8f0; }
+        .c4-opt  input[type="radio"]:checked + .c4-opt-lbl {
+            background: #1a4d7c; border-color: #4a90d9; color: #fff;
+        }
+
+        /* Campo auto (solo lectura) ─────────────────────── */
+        .c4-auto {
+            padding: 8px 12px;
+            background: rgba(74,144,217,.07);
+            border: 1.5px solid rgba(74,144,217,.2);
+            border-radius: 8px;
+            font-size: .8rem; font-weight: 600; color: #7dd3fc;
+            display: flex; align-items: center; gap: 7px;
+        }
+
+        /* Cobertura de seguro ─────────────────────────────── */
+        .c4-cob-input {
+            width: 100%; background: rgba(255,255,255,.06);
+            border: 1.5px solid rgba(255,255,255,.12); border-radius: 8px;
+            padding: 7px 10px; font-size: .83rem; font-weight: 600; color: #e2e8f0; outline: none;
+        }
+        .c4-cob-input:focus { border-color: #4a90d9; }
+        .c4-cob-input::placeholder { color: #475569; }
+        .c4-cob-row {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 6px;
+        }
+        .c4-cob-item { background: rgba(255,255,255,.04); border-radius: 8px; padding: 8px 10px; }
+        .c4-cob-lbl  { font-size: .6rem; color: #64748b; text-transform: uppercase; letter-spacing: .05em; }
+        .c4-cob-val  { font-size: .83rem; font-weight: 700; color: #e2e8f0; margin-top: 2px; }
+        .c4-cob-ok   { color: #34d399; }
+        .c4-cob-mal  { color: #f87171; }
+
+        /* ── C6 Planificación Sucesoria ────────────────────────── */
+        .c6-ayuda {
+            font-size: .72rem; color: #64748b; line-height: 1.4;
+            margin-bottom: 3px; font-style: italic;
+        }
+        .c6-score-badge {
+            display: inline-flex; align-items: baseline; gap: 6px;
+            padding: 7px 13px; border-radius: 8px;
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(255,255,255,.08);
+        }
+        .c6-badge-ok   { background: rgba(52,211,153,.10);  border-color: rgba(52,211,153,.25); }
+        .c6-badge-warn { background: rgba(251,191,36,.10);  border-color: rgba(251,191,36,.25); }
+        .c6-badge-mal  { background: rgba(248,113,113,.10); border-color: rgba(248,113,113,.25); }
+        .c6-score-num {
+            font-size: 1.25rem; font-weight: 800; line-height: 1; color: #f0c040;
+        }
+        .c6-badge-ok   .c6-score-num { color: #34d399; }
+        .c6-badge-warn .c6-score-num { color: #fbbf24; }
+        .c6-badge-mal  .c6-score-num { color: #f87171; }
+        .c6-score-sep        { font-size: .78rem; color: #64748b; font-weight: 600; }
+        .c6-score-aplicables { font-size: .67rem; color: #475569; margin-left: 4px; }
+        .c6-sub-row          { font-size: .73rem; opacity: .82; }
+
+        /* ── C5 Separación — bloques por activo ──────────────── */
+        .c5-sep-bloques {
+            display: flex; flex-direction: column; gap: 14px;
+        }
+        .c5-sep-activo {
+            background: rgba(255,255,255,.025);
+            border: 1px solid rgba(255,255,255,.07);
+            border-radius: 9px;
+            padding: 12px 14px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .c5-sep-activo-hd {
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        }
+        .c5-sep-activo-name {
+            font-size: .83rem; font-weight: 700; color: #e2e8f0; flex: 1;
+        }
+        .c5-sep-rol-tag {
+            font-size: .62rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: .04em; color: #94a3b8;
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,255,255,.1);
+            padding: 2px 7px; border-radius: 4px; flex-shrink: 0;
+        }
+        /* Badge de resultado por activo */
+        .c5-sep-badge {
+            font-size: .76rem; font-weight: 600;
+            padding: 5px 11px; border-radius: 6px;
+            align-self: flex-start;
+        }
+        .c5-sep-badge-nd   { background: rgba(255,255,255,.05); color: #64748b; }
+        .c5-sep-badge-ok   { background: rgba(52,211,153,.12);  color: #34d399; }
+        .c5-sep-badge-warn { background: rgba(251,191,36,.12);  color: #fbbf24; }
+        .c5-sep-badge-mal  { background: rgba(248,113,113,.12); color: #f87171; }
+        /* Preguntas */
+        .c5-sep-preguntas {
+            display: flex; flex-direction: column; gap: 11px;
+        }
+        .c5-sep-q {
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .c5-sep-q-txt {
+            font-size: .78rem; color: #cbd5e1; line-height: 1.45;
+        }
+
+        /* Botón guardar ───────────────────────────────────── */
+        .c4-save-bar { display: flex; justify-content: flex-end; padding-bottom: 6px; }
+
+        /* ── Capa 1: estructura de criterios ──────────────── */
+        .c4-criterio {
+            border: 1px solid rgba(255,255,255,.06);
+            border-radius: 10px;
+            padding: 13px 15px;
+            display: flex; flex-direction: column; gap: 9px;
+            background: rgba(255,255,255,.02);
+        }
+        .c4-criterio-hd {
+            display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+        }
+        .c4-crit-num {
+            font-size: .65rem; font-weight: 800; text-transform: uppercase;
+            background: rgba(74,144,217,.25); color: #4a90d9;
+            padding: 2px 7px; border-radius: 4px; flex-shrink: 0;
+        }
+        .c4-crit-title { font-size: .83rem; font-weight: 700; color: #e2e8f0; flex: 1; }
+
+        /* Contexto auto-calculado ─────────────────────────── */
+        .c4-auto-ctx {
+            background: rgba(74,144,217,.06);
+            border: 1px solid rgba(74,144,217,.15);
+            border-radius: 7px; padding: 9px 12px;
+            display: flex; flex-direction: column; gap: 5px;
+        }
+        .c4-ctx-row {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: .78rem; color: #94a3b8;
+        }
+        .c4-ctx-row strong { color: #7dd3fc; font-weight: 700; }
+        .c4-ctx-sub { font-size: .68rem; color: #475569; margin-top: -2px; }
+
+        /* Input row ──────────────────────────────────────── */
+        .c4-input-row { display: flex; flex-direction: column; gap: 5px; }
+        .c4-input-lbl { font-size: .77rem; font-weight: 600; color: #94a3b8; }
+        .c4-input-wrap { display: flex; align-items: center; gap: 7px; }
+        .c4-input-unit { font-size: .78rem; color: #64748b; font-weight: 600; }
+
+        /* RC items ───────────────────────────────────────── */
+        .c4-rc-item {
+            border: 1px solid rgba(255,255,255,.05);
+            border-radius: 8px; padding: 10px 12px;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .c4-rc-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .c4-rc-lbl    { font-size: .78rem; font-weight: 600; color: #cbd5e1; }
+        .c4-rc-badge  { font-size: .68rem; font-weight: 700; padding: 2px 8px; border-radius: 5px; }
+        .c4-rc-ok     { background: rgba(52,211,153,.15); color: #34d399; }
+        .c4-rc-warn   { background: rgba(234,179,8,.15);  color: #eab308; }
+        .c4-rc-mal    { background: rgba(239,68,68,.15);  color: #ef4444; }
+        .c4-rc-cols   { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+        /* Estructuras detectadas ─────────────────────────── */
+        .c4-estruc-item {
+            display: grid; grid-template-columns: 1fr auto auto;
+            gap: 8px; align-items: center; padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,.05); font-size: .78rem;
+        }
+        .c4-estruc-name { color: #e2e8f0; font-weight: 600; }
+        .c4-estruc-leg  { background: rgba(52,211,153,.15); color: #34d399; padding: 2px 7px; border-radius: 4px; font-size: .68rem; font-weight: 700; }
+        .c4-estruc-pais { color: #64748b; font-size: .73rem; }
+        .c4-estruc-pct  { display: flex; justify-content: space-between; font-size: .75rem; padding-top: 6px; color: #94a3b8; font-weight: 600; }
+
+        /* Semáforo Capa 1 ────────────────────────────────── */
+        .c4-c1-sem-wrap {
+            display: flex; align-items: center; gap: 10px; justify-content: flex-end;
+            padding: 6px 0; margin-top: 2px; border-top: 1px solid rgba(255,255,255,.05);
+        }
+        .c4-c1-sem-lbl   { font-size: .72rem; color: #64748b; font-weight: 600; }
+        .c4-c1-sem-badge { font-size: .82rem; font-weight: 800; padding: 4px 12px; border-radius: 6px; }
+        .c4-c1-sem-optimo    { background: rgba(21,128,61,.2);  color: #4ade80; }
+        .c4-c1-sem-solido    { background: rgba(234,179,8,.2);  color: #eab308; }
+        .c4-c1-sem-deficiente{ background: rgba(249,115,22,.2); color: #fb923c; }
+        .c4-c1-sem-critico   { background: rgba(239,68,68,.2);  color: #ef4444; }
+
+        /* Capa 1 card wider ──────────────────────────────── */
+        .c4-card-prot { grid-column: 1 / -1; }
+        @media (min-width: 1025px) {
+            .c4-card-prot { grid-column: 1 / -1; }
+        }
+
+        /* ══════════════════════════════════════════════════════
+           CAPA 2 — LIQUIDEZ
+           ══════════════════════════════════════════════════════ */
+
+        /* Bloque objetivo */
+        .c2-objetivo {
+            font-size: .78rem; color: #64748b; line-height: 1.5;
+            font-style: italic;
+            background: rgba(52,211,153,.04);
+            border: 1px solid rgba(52,211,153,.12);
+            border-radius: 8px; padding: 10px 13px;
+        }
+
+        /* Badge de criterio */
+        .c2-crit-badge {
+            margin-left: auto; font-size: .72rem; font-weight: 700;
+            padding: 3px 9px; border-radius: 5px;
+            flex-shrink: 0;
+        }
+        .c2-badge-ok   { background: rgba(52,211,153,.15);  color: #34d399; }
+        .c2-badge-warn { background: rgba(251,191,36,.15);  color: #fbbf24; }
+        .c2-badge-mal  { background: rgba(248,113,113,.15); color: #f87171; }
+
+        /* Semáforo Capa 2 */
+        .c2-sem-badge {
+            font-size: .82rem; font-weight: 800;
+            padding: 4px 12px; border-radius: 6px;
+        }
+        .c2-sem-optimo     { background: rgba(21,128,61,.2);  color: #4ade80; }
+        .c2-sem-muybueno   { background: rgba(52,211,153,.2); color: #34d399; }
+        .c2-sem-aceptable  { background: rgba(234,179,8,.2);  color: #eab308; }
+        .c2-sem-deficiente { background: rgba(249,115,22,.2); color: #fb923c; }
+        .c2-sem-critico    { background: rgba(239,68,68,.2);  color: #ef4444; }
+
+        /* Lista de activos */
+        .c2-activos-list {
+            display: flex; flex-direction: column; gap: 4px;
+            margin: 4px 0;
+        }
+        .c2-activo-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto auto;
+            gap: 8px; align-items: center;
+            padding: 5px 8px;
+            background: rgba(255,255,255,.03);
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,.05);
+        }
+        .c2-activo-name  { font-size: .78rem; font-weight: 600; color: #e2e8f0; }
+        .c2-activo-sub   { font-size: .67rem; color: #64748b; }
+        .c2-activo-val   { font-size: .78rem; font-weight: 700; color: #7dd3fc; white-space: nowrap; }
+        .c2-activo-plazo { font-size: .67rem; color: #94a3b8; white-space: nowrap; }
+        .c2-activo-empty { font-size: .75rem; color: #475569; font-style: italic; padding: 4px 6px; }
+
+        /* Gap indicator */
+        .c2-gap-ok  { font-size: .75rem; font-weight: 700; color: #34d399; padding: 3px 0; }
+        .c2-gap-mal { font-size: .75rem; font-weight: 700; color: #f87171; padding: 3px 0; }
+
+        /* Crédito hint */
+        .c2-credito-hint {
+            font-size: .73rem; color: #64748b; line-height: 1.45;
+            font-style: italic; margin-bottom: 4px;
+        }
+
+        /* ── Campos de adquisición ─────────────────────────────────── */
+        #adquisicion-group { margin-top: 0; }
+        .adq-resultado {
+            background: rgba(52,211,153,.07);
+            border: 1px solid rgba(52,211,153,.2);
+            border-radius: 8px;
+            padding: 11px 14px;
+            display: flex; flex-direction: column; gap: 5px;
+            margin-top: 6px;
+        }
+        .adq-row {
+            display: flex; justify-content: space-between; align-items: baseline;
+            font-size: .82rem; color: #94a3b8;
+        }
+        .adq-row strong { color: #34d399; font-weight: 700; }
+        .adq-row.adq-main { font-size: .88rem; }
+        .adq-row.adq-main strong { font-size: 1rem; color: #4ade80; }
+        .adq-row.adq-neg strong { color: #f87171; }
+        .adq-row.adq-main.adq-neg strong { color: #f87171; }
+        .adq-hint {
+            font-size: .75rem; color: #64748b; font-style: italic;
+            margin-top: 4px; padding: 6px 10px;
+            background: rgba(255,255,255,.03);
+            border-radius: 6px;
+            border: 1px dashed rgba(255,255,255,.07);
+        }
+
+        /* ══ CAPA 3 — CRECIMIENTO ═══════════════════════════════════ */
+        .c3-sem-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 14px; border-radius: 999px;
+            font-size: .82rem; font-weight: 700;
+        }
+        .c3-sem-optimo    { background: rgba(34,197,94,.15);  color: #4ade80; border: 1px solid rgba(34,197,94,.3); }
+        .c3-sem-muybueno  { background: rgba(34,197,94,.1);   color: #86efac; border: 1px solid rgba(34,197,94,.2); }
+        .c3-sem-aceptable { background: rgba(234,179,8,.12);  color: #fde047; border: 1px solid rgba(234,179,8,.25); }
+        .c3-sem-deficiente{ background: rgba(249,115,22,.12); color: #fb923c; border: 1px solid rgba(249,115,22,.25); }
+        .c3-sem-critico   { background: rgba(239,68,68,.12);  color: #f87171; border: 1px solid rgba(239,68,68,.25); }
+
+        .c3-assets-list, .c3-inmu-list {
+            display: flex; flex-direction: column; gap: 3px;
+            margin: 6px 0;
+        }
+        .c3-asset-row {
+            display: grid; grid-template-columns: 1fr 1fr auto;
+            gap: 6px; align-items: center;
+            padding: 5px 8px; border-radius: 6px;
+            background: rgba(255,255,255,.04);
+            font-size: .78rem;
+        }
+        .c3-asset-name { font-weight: 600; color: #e2e8f0; }
+        .c3-asset-sub  { color: #64748b; }
+        .c3-asset-val  { text-align: right; font-weight: 700; color: #94a3b8; white-space: nowrap; }
+        .c3-empty {
+            font-size: .78rem; color: #475569; padding: 8px 10px;
+            background: rgba(255,255,255,.03); border-radius: 6px;
+            border: 1px dashed rgba(255,255,255,.07);
+        }
+        .c3-badge {
+            display: inline-block; padding: 2px 9px; border-radius: 999px;
+            font-size: .72rem; font-weight: 700;
+        }
+        .c3-ok   { background: rgba(52,211,153,.12); color: #34d399; border: 1px solid rgba(52,211,153,.25); }
+        .c3-warn { background: rgba(234,179,8,.1);   color: #fbbf24; border: 1px solid rgba(234,179,8,.22); }
+        .c3-mal  { background: rgba(239,68,68,.1);   color: #f87171; border: 1px solid rgba(239,68,68,.22); }
+        .c3-alerta {
+            font-size: .75rem; color: #fbbf24;
+            background: rgba(234,179,8,.07);
+            border: 1px solid rgba(234,179,8,.2);
+            border-radius: 6px; padding: 6px 10px; margin-top: 4px;
+        }
+        .c3-alerta.c3-alerta-red {
+            color: #f87171;
+            background: rgba(239,68,68,.07);
+            border-color: rgba(239,68,68,.2);
+        }
+        .c3-inmu-row {
+            background: rgba(255,255,255,.04); border-radius: 6px;
+            padding: 7px 10px; margin-bottom: 3px;
+        }
+        .c3-inmu-nombre { font-weight: 600; font-size: .82rem; color: #e2e8f0; margin-bottom: 3px; }
+        .c3-inmu-detalle {
+            display: flex; gap: 12px; flex-wrap: wrap;
+            font-size: .75rem; color: #94a3b8;
+        }
+        .c3-neg-bloque {
+            background: rgba(255,255,255,.03); border-radius: 8px;
+            padding: 12px 14px; margin-bottom: 6px;
+            border: 1px solid rgba(255,255,255,.06);
+        }
+        .c3-neg-titulo {
+            font-weight: 700; font-size: .88rem; color: #e2e8f0;
+            margin-bottom: 10px; padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,.07);
+        }
+        .c3-neg-dim { margin-bottom: 10px; }
+        .c3-neg-dim-lbl { font-size: .78rem; color: #94a3b8; margin-bottom: 5px; }
+        .c3-retorno-input {
+            margin-top: 8px; padding: 10px 12px;
+            background: rgba(255,255,255,.04); border-radius: 8px;
+            border: 1px solid rgba(255,255,255,.08);
+        }
+        .c3-retorno-input label { font-size: .78rem; color: #94a3b8; }
+
+        /* ══ OBJETIVOS DEL CLIENTE ══════════════════════════════════ */
+        .obj-plazo-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .obj-plazo-title {
+            font-size: .82rem; font-weight: 700; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: .06em;
+        }
+        .obj-add-btn {
+            font-size: .72rem; font-weight: 600; padding: 4px 10px;
+            border-radius: 6px; border: 1px solid rgba(255,255,255,.15);
+            background: rgba(255,255,255,.07); color: #94a3b8;
+            cursor: pointer; transition: all .15s;
+        }
+        .obj-add-btn:hover { background: rgba(255,255,255,.13); color: #e2e8f0; }
+        .obj-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px; }
+        .obj-card {
+            background: rgba(255,255,255,.04); border-radius: 10px;
+            border: 1px solid rgba(255,255,255,.08); padding: 12px 14px;
+        }
+        .obj-card-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .obj-card-num { font-size: .7rem; font-weight: 700; color: #475569; text-transform: uppercase; }
+        .obj-remove-btn {
+            background: none; border: none; color: #475569; font-size: .85rem;
+            cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: color .13s;
+        }
+        .obj-remove-btn:hover { color: #f87171; }
+        .obj-tipo-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; margin-bottom: 10px;
+        }
+        @media (max-width: 540px) { .obj-tipo-grid { grid-template-columns: 1fr; } }
+        .obj-tipo-opt {
+            display: flex; align-items: flex-start; gap: 6px;
+            font-size: .78rem; color: #94a3b8; cursor: pointer; padding: 3px 0;
+        }
+        .obj-tipo-opt input[type="radio"] { accent-color: #4a90d9; flex-shrink: 0; margin-top: 2px; }
+        .obj-otro-input {
+            font-size: .78rem; padding: 4px 8px; border-radius: 6px;
+            border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05);
+            color: #e2e8f0; width: 100%; margin-top: 4px;
+        }
+        .obj-row3 {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px;
+        }
+        @media (max-width: 540px) { .obj-row3 { grid-template-columns: 1fr; } }
+        .obj-field { display: flex; flex-direction: column; gap: 3px; }
+        .obj-field label { font-size: .72rem; color: #64748b; font-weight: 600; }
+        .obj-field input, .obj-field select {
+            font-size: .8rem; padding: 5px 8px; border-radius: 6px;
+            border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05);
+            color: #e2e8f0; width: 100%;
+        }
+        .obj-pri-opts { display: flex; gap: 6px; flex-wrap: wrap; }
+        .obj-pri-opt {
+            font-size: .72rem; padding: 3px 10px; border-radius: 999px; cursor: pointer;
+            border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05);
+            color: #64748b; transition: all .13s;
+        }
+        .obj-pri-opt:has(input:checked) {
+            border-color: #4a90d9; background: rgba(74,144,217,.15); color: #93c5fd;
+        }
+        .obj-pri-opt input { display: none; }
+        .obj-viabilidad {
+            margin-top: 10px; padding: 9px 12px; border-radius: 8px;
+            background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07);
+            font-size: .77rem; display: flex; flex-direction: column; gap: 4px;
+        }
+        .obj-via-row { display: flex; justify-content: space-between; color: #64748b; }
+        .obj-via-ok   { color: #34d399; font-weight: 600; }
+        .obj-via-warn { color: #fbbf24; font-weight: 600; }
+        .obj-via-bad  { color: #f87171;  font-weight: 600; }
+        .obj-largo-card {
+            background: rgba(255,255,255,.04); border-radius: 10px;
+            border: 1px solid rgba(255,255,255,.1); padding: 14px 16px;
+        }
+        .obj-largo-titulo { font-size: .9rem; font-weight: 700; color: #e2e8f0; margin-bottom: 3px; }
+        .obj-largo-sub { font-size: .77rem; color: #64748b; margin-bottom: 12px; }
+        .obj-hito { display: flex; flex-direction: column; gap: 5px; margin: 10px 0; }
+        .obj-hito-row { display: flex; justify-content: space-between; font-size: .77rem; }
+        .obj-hito-lbl { color: #94a3b8; }
+        .obj-hito-val { color: #e2e8f0; font-weight: 600; }
+        .obj-progress-wrap { display: flex; flex-direction: column; gap: 7px; margin: 10px 0; }
+        .obj-progress-lbl { display: flex; justify-content: space-between; font-size: .75rem; color: #64748b; }
+        .obj-progress-lbl strong { color: #94a3b8; }
+        .obj-progress-track { height: 7px; background: rgba(255,255,255,.07); border-radius: 999px; overflow: hidden; }
+        .obj-progress-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg,#4a90d9,#34d399); transition: width .5s ease; }
+        .obj-pif-opt { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+        .obj-pif-opt label { font-size: .78rem; color: #94a3b8; white-space: nowrap; }
+        .obj-pif-opt input {
+            width: 70px; font-size: .8rem; padding: 4px 8px; border-radius: 6px;
+            border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); color: #e2e8f0;
+        }
+
+        /* ── Seguro de pensión con ahorro ─────────────────────── */
+        #seguro-pension-group { }
+        .sp-alineacion {
+            font-size: .78rem; padding: 7px 10px; border-radius: 7px;
+            margin-top: 6px; font-weight: 600;
+        }
+        .sp-alin-ok   { background: rgba(52,211,153,.09); color: #34d399; border: 1px solid rgba(52,211,153,.25); }
+        .sp-alin-warn { background: rgba(234,179,8,.08);  color: #fbbf24; border: 1px solid rgba(234,179,8,.22); }
+        .sp-alin-info { background: rgba(74,144,217,.08); color: #93c5fd; border: 1px solid rgba(74,144,217,.22); }
+        .sp-vence-info { font-size:.75rem; color:#64748b; margin-top:4px; font-style:italic; }
+
+        /* ── C6 contexto auto ─────────────────────────── */
+        .c6-ctx-auto {
+            background: rgba(74,144,217,.07);
+            border: 1px solid rgba(74,144,217,.18);
+            border-radius: 6px;
+            padding: 6px 10px;
+            margin: 4px 0 8px 0;
+            font-size: .76rem;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        /* ── C5 separación: distinción visual correcto/incorrecto ─── */
+        .c5-opt-correcto  .c4-opt-lbl {
+            background: rgba(52,211,153,.18);
+            border-color: rgba(52,211,153,.5);
+            color: #34d399;
+        }
+        .c5-opt-incorrecto .c4-opt-lbl {
+            background: rgba(248,113,113,.18);
+            border-color: rgba(248,113,113,.5);
+            color: #f87171;
+        }
+
+        /* ── Capa 4 Diversificación ──────────────────────────────── */
+        .c4d-barra-row {
+            display: flex; align-items: center; gap: 8px;
+            font-size: .77rem; color: #94a3b8; margin-bottom: 4px;
+        }
+        .c4d-barra-lbl { min-width: 130px; white-space: nowrap; }
+        .c4d-barra-track {
+            flex: 1; height: 7px; background: rgba(255,255,255,.07);
+            border-radius: 999px; overflow: hidden;
+        }
+        .c4d-barra-fill {
+            height: 100%; border-radius: 999px;
+            background: linear-gradient(90deg, #4a90d9, #a78bfa);
+            transition: width .5s ease;
+        }
+        .c4d-barra-fill--warn { background: linear-gradient(90deg, #f0c040, #f87171); }
+        .c4d-barra-pct { min-width: 38px; text-align: right; font-weight: 600; color: #e2e8f0; font-size: .73rem; }
+        .c4d-barra-cop { min-width: 105px; text-align: right; color: #64748b; font-size: .7rem; }
+        .c4d-seccion-lbl {
+            font-size: .72rem; font-weight: 700; color: #64748b;
+            text-transform: uppercase; letter-spacing: .05em;
+            margin: 10px 0 5px 0;
+        }
+        .c4d-alerta {
+            font-size: .77rem; padding: 6px 10px; border-radius: 6px;
+            margin-top: 6px;
+        }
+        .c4d-alerta--warn { background: rgba(251,191,36,.08); color: #fbbf24; border: 1px solid rgba(251,191,36,.2); }
+        .c4d-alerta--bad  { background: rgba(248,113,113,.08); color: #f87171;  border: 1px solid rgba(248,113,113,.2); }
+        .c4d-alerta--ok   { background: rgba(52,211,153,.08);  color: #34d399;  border: 1px solid rgba(52,211,153,.2); }
+        .c4d-sub { font-size: .73rem; color: #475569; margin: 4px 0; font-style: italic; }
+        .c4d-semaforo {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 12px; padding: 8px 12px; border-radius: 8px;
+            background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+        }
+        .c4d-sem-lbl { font-size: .78rem; color: #64748b; }
+        .c4d-sem-badge { font-size: .85rem; font-weight: 700; }
+        .c4d-score-row {
+            display: flex; justify-content: flex-end; align-items: baseline;
+            gap: 4px; margin-top: 6px; font-size: .8rem; color: #64748b;
+        }
+        .c4d-score-val { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="logo-container">
+                <img src="logo-abba.png" alt="ABBA Logo" id="logo-img">
+            </div>
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Cargando plataforma...</p>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-screen">
+        <div class="login-container">
+            <div class="login-left">
+                <div class="login-branding">
+                    <img src="logo-abba.png" alt="ABBA Logo" class="login-logo" id="login-logo-img">
+                    <h1>Arquitectura Patrimonial</h1>
+                    <p class="subtitle">Protección, Crecimiento y Legado</p>
+                </div>
+                <div class="login-features">
+                    <div class="feature-item">
+                        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                        <div>
+                            <h3>Protección Total</h3>
+                            <p>Blindaje patrimonial y legal</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        <div>
+                            <h3>Crecimiento Inteligente</h3>
+                            <p>Diversificación estratégica</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        <div>
+                            <h3>Legado Familiar</h3>
+                            <p>Planificación multigeneracional</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="login-right">
+                <div class="login-form-container">
+                    <h2>Bienvenido</h2>
+                    <p class="form-subtitle">Ingrese sus credenciales</p>
+                    
+                    <form id="login-form" class="auth-form">
+                        <div class="form-group">
+                            <label for="email">Correo Electrónico</label>
+                            <input type="email" id="email" required autocomplete="email">
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Contraseña</label>
+                            <input type="password" id="password" required autocomplete="current-password">
+                        </div>
+                        <div class="form-actions">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="remember-me">
+                                <span>Recordarme</span>
+                            </label>
+                            <a href="#" class="link-button">¿Olvidó su contraseña?</a>
+                        </div>
+                        <button type="submit" class="btn-primary" id="login-btn">
+                            <span>Iniciar Sesión</span>
+                        </button>
+                        <div class="divider">
+                            <span>o</span>
+                        </div>
+                        <button type="button" class="btn-secondary" id="register-toggle">
+                            Crear Nueva Cuenta
+                        </button>
+                    </form>
+
+                    <form id="register-form" class="auth-form" style="display: none;">
+                        <div class="form-group">
+                            <label for="reg-name">Nombre Completo</label>
+                            <input type="text" id="reg-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-email">Correo Electrónico</label>
+                            <input type="email" id="reg-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-password">Contraseña</label>
+                            <input type="password" id="reg-password" required minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-password-confirm">Confirmar Contraseña</label>
+                            <input type="password" id="reg-password-confirm" required minlength="6">
+                        </div>
+                        <button type="submit" class="btn-primary" id="register-btn">
+                            <span>Crear Cuenta</span>
+                        </button>
+                        <button type="button" class="btn-secondary" id="login-toggle">
+                            Ya tengo cuenta
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="main-app" class="main-app" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="logo-abba.png" alt="ABBA Logo" class="sidebar-logo" id="sidebar-logo-img">
+            </div>
+            <nav class="sidebar-nav">
+                <!-- Sección de Asesor -->
+                <div class="nav-section" id="advisor-nav">
+                    <a href="#clientes" class="nav-item active" data-section="clientes">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        <span>Mis Clientes</span>
+                    </a>
+                </div>
+                
+                <!-- Navegación de Cliente (se muestra cuando hay un cliente seleccionado) -->
+                <div class="nav-section" id="client-nav" style="display: none;">
+                    <div class="nav-divider">
+                        <span>Cliente Actual</span>
+                    </div>
+                    <a href="#dashboard" class="nav-item" data-section="dashboard">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#patrimonio" class="nav-item" data-section="patrimonio">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                            <line x1="12" y1="22.08" x2="12" y2="12"/>
+                        </svg>
+                        <span>Mapa Patrimonial</span>
+                    </a>
+                    <a href="#capas" class="nav-item" data-section="capas">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                            <polyline points="2 17 12 22 22 17"/>
+                            <polyline points="2 12 12 17 22 12"/>
+                        </svg>
+                        <span>Evaluación 4 Capas</span>
+                    </a>
+                    <a href="#vulnerabilidades" class="nav-item" data-section="vulnerabilidades">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        <span>Vulnerabilidades</span>
+                    </a>
+                    <a href="#arquitectura" class="nav-item" data-section="arquitectura">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                        <span>Arquitectura Ideal</span>
+                    </a>
+                    <a href="#implementacion" class="nav-item" data-section="implementacion">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 11 12 14 22 4"/>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                        </svg>
+                        <span>Plan Implementación</span>
+                    </a>
+                    <a href="#instrumentos" class="nav-item" data-section="instrumentos">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                        </svg>
+                        <span>Instrumentos</span>
+                    </a>
+                    <a href="#documentos" class="nav-item" data-section="documentos">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10 9 9 9 8 9"/>
+                        </svg>
+                        <span>Documentos</span>
+                    </a>
+                    <button class="btn-back-clients" id="back-to-clients-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="19" y1="12" x2="5" y2="12"/>
+                            <polyline points="12 19 5 12 12 5"/>
+                        </svg>
+                        <span>Volver a Clientes</span>
+                    </button>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar" id="user-avatar">
+                        <span id="user-initials">AB</span>
+                    </div>
+                    <div class="user-info">
+                        <p class="user-name" id="user-name">Asesor</p>
+                        <p class="user-role">Asesor Patrimonial</p>
+                    </div>
+                </div>
+                <div class="client-badge" id="client-badge" style="display: none;">
+                    <span class="badge-label">Cliente:</span>
+                    <span class="badge-name" id="selected-client-name">-</span>
+                </div>
+                <button class="btn-logout" id="logout-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="header-title">
+                    <h1 id="section-title">Dashboard</h1>
+                    <p id="section-subtitle">Visión general de su arquitectura patrimonial</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" title="Notificaciones">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                        <span class="notification-badge">3</span>
+                    </button>
+                    <button class="btn-icon" title="Configuración">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content Sections -->
+            <div class="content-wrapper">
+                <!-- Clientes Section (Default for Advisors) -->
+                <section id="clientes-section" class="content-section active">
+                    <div class="clients-header">
+                        <div class="section-intro">
+                            <h2>Gestión de Clientes</h2>
+                            <p>Administre y monitoree el patrimonio de todos sus clientes</p>
+                        </div>
+                        <button class="btn-primary" id="add-client-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Agregar Cliente
+                        </button>
+                    </div>
+
+                    <!-- Estadísticas Generales -->
+                    <div class="advisor-stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <p class="stat-label">Total Clientes</p>
+                                <p class="stat-value" id="total-clients">0</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="1" x2="12" y2="23"/>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <p class="stat-label">Patrimonio Total AUM</p>
+                                <p class="stat-value" id="total-aum">$0</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <p class="stat-label">Clientes Activos</p>
+                                <p class="stat-value" id="active-clients">0</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                    <line x1="12" y1="9" x2="12" y2="13"/>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <p class="stat-label">Alertas Críticas</p>
+                                <p class="stat-value alert" id="total-alerts">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Clientes -->
+                    <div class="clients-container">
+                        <div class="clients-filters">
+                            <input type="search" id="client-search" placeholder="Buscar cliente...">
+                            <select id="client-filter">
+                                <option value="all">Todos los clientes</option>
+                                <option value="active">Activos</option>
+                                <option value="inactive">Inactivos</option>
+                            </select>
+                        </div>
+                        
+                        <div class="clients-grid" id="clients-grid">
+                            <!-- Se llenará dinámicamente -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ═══════════════════════════════════════════
+                     DASHBOARD — 6 Bloques patrimoniales
+                ════════════════════════════════════════════ -->
+                <section id="dashboard-section" class="content-section">
+
+                    <!-- Fila 1: Patrimonio (ancho completo) + Independencia Financiera -->
+                    <div class="db-row db-row--top">
+
+                        <!-- BLOQUE 1 · PATRIMONIO -->
+                        <div class="db-card db-card--hero" id="db-bloque-patrimonio">
+                            <div class="db-card-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                Patrimonio Neto
+                            </div>
+                            <div class="db-hero-value" id="db-patrimonio-cop">$ — COP</div>
+                            <div class="db-hero-secondary" id="db-patrimonio-usd">≈ $ — USD</div>
+                            <div class="db-breakdown">
+                                <div class="db-breakdown-item">
+                                    <span class="db-breakdown-label">Activos brutos</span>
+                                    <span class="db-breakdown-val db-val--green" id="db-activos-brutos">—</span>
+                                </div>
+                                <div class="db-breakdown-divider">−</div>
+                                <div class="db-breakdown-item">
+                                    <span class="db-breakdown-label">Total pasivos</span>
+                                    <span class="db-breakdown-val db-val--red" id="db-pasivos-total">—</span>
+                                </div>
+                            </div>
+                            <div id="trm-pie-dashboard" style="font-size:0.7rem; color:#475569; padding-top:4px; min-height:1em;"></div>
+                        </div>
+
+                        <!-- BLOQUE 6 · INDEPENDENCIA FINANCIERA -->
+                        <div class="db-card" id="db-bloque-if">
+                            <div class="db-card-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                Independencia Financiera
+                            </div>
+                            <div class="db-if-numero-wrap">
+                                <span class="db-if-numero-label">Número mágico</span>
+                                <span class="db-if-numero-val" id="db-numero-magico">—</span>
+                                <span class="db-if-numero-sub">Gastos anuales × 25 (regla del 4%)</span>
+                            </div>
+                            <div class="db-if-pct-big" id="db-if-pct">0%</div>
+                            <div class="db-progress-wrap">
+                                <div class="db-progress-track">
+                                    <div class="db-progress-fill db-fill--gold" id="db-if-bar" style="width:0%"></div>
+                                </div>
+                                <span class="db-progress-caption" id="db-if-caption">del objetivo alcanzado</span>
+                            </div>
+                            <div class="db-semaforo" id="db-semaforo-if" style="margin-top:6px;">
+                                <span class="db-semaforo-dot"></span>
+                                <span class="db-semaforo-label" id="db-semaforo-if-label"></span>
+                            </div>
+                            <div id="db-if-detalle" style="display:none;margin-top:8px;font-size:.78rem;"></div>
+                        </div>
+
+                    </div><!-- /row top -->
+
+                    <!-- Fila 2: Ingresos Pasivos + Liquidez -->
+                    <div class="db-row db-row--mid">
+
+                        <!-- BLOQUE 2 · INGRESOS PASIVOS -->
+                        <div class="db-card" id="db-bloque-ingresos">
+                            <div class="db-card-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                                Ingresos Pasivos Mensuales
+                            </div>
+                            <div class="db-metric-row">
+                                <div class="db-metric-big" id="db-ingresos-valor">$ — / mes</div>
+                                <div class="db-semaforo" id="db-semaforo-ingresos">
+                                    <span class="db-semaforo-dot"></span>
+                                    <span class="db-semaforo-pct" id="db-ingresos-pct">0%</span>
+                                </div>
+                            </div>
+                            <div class="db-progress-wrap">
+                                <div class="db-progress-track">
+                                    <div class="db-progress-fill" id="db-ingresos-bar" style="width:0%"></div>
+                                </div>
+                                <span class="db-progress-caption" id="db-ingresos-caption">de los gastos mensuales cubiertos</span>
+                            </div>
+                            <!-- Metas de ingresos pasivos -->
+                            <div class="db-metas">
+                                <div class="db-meta-item">
+                                    <span class="db-meta-year">5 años</span>
+                                    <span class="db-meta-target" id="db-meta-5">—</span>
+                                    <span class="db-meta-pct" id="db-meta-5-pct"></span>
+                                </div>
+                                <div class="db-meta-item">
+                                    <span class="db-meta-year">10 años</span>
+                                    <span class="db-meta-target" id="db-meta-10">—</span>
+                                    <span class="db-meta-pct" id="db-meta-10-pct"></span>
+                                </div>
+                                <div class="db-meta-item">
+                                    <span class="db-meta-year">15 años</span>
+                                    <span class="db-meta-target" id="db-meta-15">—</span>
+                                    <span class="db-meta-pct" id="db-meta-15-pct"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BLOQUE 3 · LIQUIDEZ -->
+                        <div class="db-card" id="db-bloque-liquidez">
+                            <div class="db-card-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                                Liquidez (Fondo de Emergencia)
+                            </div>
+                            <div class="db-metric-row">
+                                <div class="db-metric-big" id="db-liquidez-meses">— meses</div>
+                                <div class="db-semaforo" id="db-semaforo-liquidez">
+                                    <span class="db-semaforo-dot"></span>
+                                    <span class="db-semaforo-label" id="db-liquidez-estado">—</span>
+                                </div>
+                            </div>
+                            <div class="db-progress-wrap">
+                                <div class="db-progress-track">
+                                    <div class="db-progress-fill" id="db-liquidez-bar" style="width:0%"></div>
+                                </div>
+                                <span class="db-progress-caption" id="db-liquidez-meta-label">Meta: 6 meses de gastos cubiertos</span>
+                            </div>
+                            <div class="db-gap-row" id="db-gap-row">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                                <span class="db-gap-label" id="db-gap-meta-label">Gap hacia meta (6 meses):</span>
+                                <span class="db-gap-val" id="db-liquidez-gap">—</span>
+                            </div>
+                            <div class="db-liquidez-detalle">
+                                <span class="db-detail-label">Activos liquidez Alta en COP:</span>
+                                <span class="db-detail-val" id="db-activos-alta">—</span>
+                            </div>
+                        </div>
+
+                    </div><!-- /row mid -->
+
+                    <!-- Fila 3: Gráficas -->
+                    <!-- Fila 1: Tipo + Moneda -->
+                    <div class="db-row db-row--charts">
+
+                        <!-- BLOQUE 4 · CONCENTRACIÓN POR TIPO -->
+                        <div class="db-card db-card--chart" id="db-bloque-tipo">
+                            <div class="db-card-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                                Concentración por Tipo de Activo
+                            </div>
+                            <div class="db-chart-inner">
+                                <div class="db-donut-wrap">
+                                    <canvas id="db-chart-tipo" width="200" height="200"></canvas>
+                                </div>
+                                <div class="db-chart-legend" id="db-legend-tipo">
+                                    <p class="db-legend-empty">Sin datos</p>
+                                </div>
+                            </div>
+                            <div class="db-alert" id="db-alert-tipo" style="display:none;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                <span id="db-alert-tipo-msg"></span>
+                            </div>
+                        </div>
+
+                        <!-- BLOQUE 5 · CONCENTRACIÓN POR MONEDA -->
+                        <div class="db-card db-card--chart" id="db-bloque-moneda">
+                            <div class="db-card-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                                Concentración por Moneda
+                            </div>
+                            <div class="db-chart-inner">
+                                <div class="db-donut-wrap">
+                                    <canvas id="db-chart-moneda" width="200" height="200"></canvas>
+                                </div>
+                                <div class="db-chart-legend" id="db-legend-moneda">
+                                    <p class="db-legend-empty">Sin datos</p>
+                                </div>
+                            </div>
+                            <div class="db-alert" id="db-alert-moneda" style="display:none;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                <span id="db-alert-moneda-msg"></span>
+                            </div>
+                        </div>
+
+                    </div><!-- /row charts 1 -->
+
+                    <!-- Fila 2: Geográfica + Negocio Único -->
+                    <div class="db-row db-row--charts">
+
+                        <!-- BLOQUE 7 · CONCENTRACIÓN GEOGRÁFICA -->
+                        <div class="db-card db-card--chart" id="db-bloque-geo">
+                            <div class="db-card-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="2 12 12 2 22 12"/><path d="M12 2v20"/></svg>
+                                Concentración Geográfica
+                            </div>
+                            <div class="db-chart-inner">
+                                <div class="db-donut-wrap">
+                                    <canvas id="db-chart-geo" width="200" height="200"></canvas>
+                                </div>
+                                <div class="db-chart-legend" id="db-legend-geo">
+                                    <p class="db-legend-empty">Sin datos</p>
+                                </div>
+                            </div>
+                            <div id="db-geo-jurisdiccion" style="display:none;font-size:.75rem;color:#34d399;margin-top:4px;"></div>
+                            <div class="db-alert" id="db-alert-geo" style="display:none;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                <span id="db-alert-geo-msg"></span>
+                            </div>
+                        </div>
+
+                        <!-- BLOQUE 8 · DEPENDENCIA NEGOCIO ÚNICO -->
+                        <div class="db-card" id="db-bloque-negocio">
+                            <div class="db-card-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                                Dependencia Negocio Único
+                            </div>
+                            <div id="db-negocio-lista" style="display:flex;flex-direction:column;gap:8px;">
+                                <p class="db-legend-empty">Sin activos empresariales</p>
+                            </div>
+                            <div style="font-size:.72rem;color:#475569;margin-top:2px;">Meta: ningún negocio &gt; 40% del patrimonio</div>
+                            <div class="db-alert" id="db-alert-negocio" style="display:none;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                <span id="db-alert-negocio-msg"></span>
+                            </div>
+                        </div>
+
+                    </div><!-- /row charts 2 -->
+
+                    <!-- Fila 3: Ingresos + Sectorial -->
+                    <div class="db-row db-row--charts">
+
+                        <!-- BLOQUE 9 · DEPENDENCIA INGRESOS ACTIVOS -->
+                        <div class="db-card" id="db-bloque-ingresos-dep">
+                            <div class="db-card-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
+                                Dependencia Ingresos Activos
+                            </div>
+                            <div id="db-ingresos-dep-body" style="display:flex;flex-direction:column;gap:6px;">
+                                <p class="db-legend-empty">Sin datos</p>
+                            </div>
+                            <div style="font-size:.72rem;color:#475569;margin-top:2px;">Meta: ingresos pasivos &gt; 50% del total</div>
+                            <div class="db-alert" id="db-alert-ingresos-dep" style="display:none;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                <span id="db-alert-ingresos-dep-msg"></span>
+                            </div>
+                        </div>
+
+                        <!-- BLOQUE 10 · CONCENTRACIÓN SECTORIAL -->
+                        <div class="db-card db-card--chart" id="db-bloque-sector">
+                            <div class="db-card-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                                Concentración Sectorial
+                            </div>
+                            <div id="db-sector-body">
+                                <p class="db-legend-empty">Sin datos sectoriales</p>
+                            </div>
+                            <div style="font-size:.72rem;color:#475569;margin-top:2px;">Meta: ningún sector &gt; 40%</div>
+                            <div class="db-alert" id="db-alert-sector" style="display:none;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                <span id="db-alert-sector-msg"></span>
+                            </div>
+                        </div>
+
+                    </div><!-- /row charts 3 -->
+
+                    <!-- Resumen de concentraciones -->
+                    <div class="db-row" style="grid-template-columns:1fr;">
+                        <div class="db-card" id="db-bloque-resumen-conc">
+                            <div class="db-card-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                Resumen de Concentraciones
+                            </div>
+                            <div id="db-resumen-conc-body" style="font-size:.82rem;display:flex;flex-direction:column;gap:6px;">
+                                <span style="color:#475569;">Calculando…</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- Other sections will be loaded dynamically -->
+                <section id="patrimonio-section" class="content-section">
+                    <div class="section-intro">
+                        <h2>Mapa Patrimonial Actual</h2>
+                        <p>Inventario completo de activos, pasivos y análisis de concentración de riesgo</p>
+                    </div>
+                    
+                    <div class="form-card">
+                        <h3>Información del Cliente</h3>
+                        <form id="client-info-form" class="data-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Nombre Completo</label>
+                                    <input type="text" id="client-name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Fecha de Elaboración</label>
+                                    <input type="date" id="elaboration-date" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-primary">Guardar Información</button>
+                        </form>
+                    </div>
+
+                    <div class="form-card">
+                        <div class="card-header-with-action">
+                            <h3>Inventario de Activos</h3>
+                            <button class="btn-secondary" id="add-asset-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Agregar Activo
+                            </button>
+                        </div>
+
+                        <!-- ── SECCIÓN TIPOS DE CAMBIO (aparece automáticamente si hay activos en USD o EUR) ── -->
+                        <div id="trm-section" style="display:none; margin-bottom: 18px; padding: 16px 20px; background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 12px;">
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                <strong style="font-size:0.9rem; color:#92400e;">Tipos de cambio</strong>
+                                <span style="font-size:0.78rem; color:#b45309; margin-left:4px;">— necesarios para convertir activos en moneda extranjera a COP</span>
+                            </div>
+                            <div id="trm-row-usd" style="display:none; align-items:center; gap:12px; margin-bottom:10px;">
+                                <label style="font-size:0.85rem; font-weight:600; color:#78350f; white-space:nowrap;">1 USD =</label>
+                                <input
+                                    type="number"
+                                    id="trm-usd"
+                                    min="0"
+                                    step="1"
+                                    placeholder="Ej: 4200"
+                                    style="width:160px; padding:8px 12px; border:1.5px solid #f59e0b; border-radius:8px; font-size:0.9rem; font-weight:600; background:#fff; color:#1c1917;"
+                                >
+                                <span style="font-size:0.85rem; color:#78350f; font-weight:600;">COP</span>
+                            </div>
+                            <div id="trm-row-eur" style="display:none; align-items:center; gap:12px;">
+                                <label style="font-size:0.85rem; font-weight:600; color:#78350f; white-space:nowrap;">1 EUR =</label>
+                                <input
+                                    type="number"
+                                    id="trm-eur"
+                                    min="0"
+                                    step="1"
+                                    placeholder="Ej: 4600"
+                                    style="width:160px; padding:8px 12px; border:1.5px solid #f59e0b; border-radius:8px; font-size:0.9rem; font-weight:600; background:#fff; color:#1c1917;"
+                                >
+                                <span style="font-size:0.85rem; color:#78350f; font-weight:600;">COP</span>
+                            </div>
+                        </div>
+                        <!-- ── FIN TIPOS DE CAMBIO ── -->
+                        <div class="assets-table-container">
+                            <table class="data-table" id="assets-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Subtipo / ¿Cuál?</th>
+                                        <th>Descripción</th>
+                                        <th>Valor original</th>
+                                        <th>Patrimonio neto COP</th>
+                                        <th>Liquidez</th>
+                                        <th>Ingreso/mes COP</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="assets-tbody">
+                                    <tr class="empty-state">
+                                        <td colspan="8">
+                                            <div class="empty-message">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                                </svg>
+                                                <p>No hay activos registrados</p>
+                                                <button class="btn-secondary" onclick="document.getElementById('add-asset-btn').click()">Agregar Primer Activo</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot id="assets-tfoot" style="display:none;">
+                                    <tr class="totals-row">
+                                        <td colspan="4"><strong>TOTALES</strong></td>
+                                        <td id="total-patrimonio-cop">—</td>
+                                        <td id="total-liquidez-meses">—</td>
+                                        <td id="total-ingresos-pasivos">—</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr class="totals-row totals-secondary">
+                                        <td colspan="4" style="font-size:0.8rem; color:#6b7280;">Patrimonio USD / % Activos generadores</td>
+                                        <td id="total-patrimonio-usd">—</td>
+                                        <td></td>
+                                        <td id="total-pct-generadores">—</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="8" style="padding:8px 12px; font-size:0.75rem; color:#6b7280; background:#f8fafc; border-top:1px solid #e2e8f0;">
+                                            <span id="trm-pie-tabla"></span>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Add other sections here as needed -->
+                <!-- Sección 4 Capas — el JS la construye dinámicamente -->
+                <section id="capas-section" class="content-section"></section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for Adding/Editing Clients -->
+    <!-- Modal for Adding/Editing Clients -->
+    <div id="client-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="client-modal-title">Agregar Cliente</h3>
+                <button class="modal-close" id="close-client-modal">&times;</button>
+            </div>
+            <form id="client-form" class="data-form">
+                <input type="hidden" id="client-id">
+                <input type="hidden" id="client-risk-profile-calculated">
+                <input type="hidden" id="client-risk-score">
+                <input type="hidden" id="client-investment-horizon">
+                
+                <!-- Sección 1: Datos Básicos -->
+                <div class="form-section">
+                    <h4 class="form-section-title">Datos Básicos del Cliente</h4>
+                    
+                    <div class="form-group">
+                        <label>Nombre Completo *</label>
+                        <input type="text" id="client-name" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Edad *</label>
+                            <input type="number" id="client-age" min="18" max="100" required>
+                            <small>Se usa para calcular horizonte de inversión</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Estado Civil *</label>
+                            <select id="client-marital-status" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="Soltero">Soltero/a</option>
+                                <option value="Casado">Casado/a</option>
+                                <option value="Unión Libre">Unión Libre</option>
+                                <option value="Divorciado">Divorciado/a</option>
+                                <option value="Viudo">Viudo/a</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Número de Dependientes</label>
+                            <input type="number" id="client-dependents" min="0" value="0">
+                            <small>Hijos u otras personas a cargo</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>País de Residencia *</label>
+                            <input type="text" id="client-country" value="Colombia" required>
+                            <small>Afecta fiscalidad y alertas</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Gastos Mensuales (COP) *</label>
+                            <input type="number" id="client-monthly-expenses" step="1000" required placeholder="5000000">
+                            <small>Base para cálculos de liquidez</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Ingresos Mensuales Activos (COP) *</label>
+                            <input type="number" id="client-monthly-active-income" step="1000" required placeholder="10000000">
+                            <small>Salario + honorarios + utilidades</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="tipo-ingresos-group">
+                        <label>Tipo de ingresos activos</label>
+                        <div class="rol-emp-options">
+                            <label class="rol-emp-option">
+                                <input type="radio" name="tipo-ingresos-activos" value="empleado">
+                                <span class="rol-emp-radio-dot"></span>
+                                <span class="rol-emp-text">
+                                    <span class="rol-emp-label">Empleado (salario fijo)</span>
+                                    <span class="rol-emp-hint">Meta fondo de emergencia: 6 meses</span>
+                                </span>
+                            </label>
+                            <label class="rol-emp-option">
+                                <input type="radio" name="tipo-ingresos-activos" value="independiente">
+                                <span class="rol-emp-radio-dot"></span>
+                                <span class="rol-emp-text">
+                                    <span class="rol-emp-label">Independiente / Freelance</span>
+                                    <span class="rol-emp-hint">Meta fondo de emergencia: 9 meses</span>
+                                </span>
+                            </label>
+                            <label class="rol-emp-option">
+                                <input type="radio" name="tipo-ingresos-activos" value="empresario">
+                                <span class="rol-emp-radio-dot"></span>
+                                <span class="rol-emp-text">
+                                    <span class="rol-emp-label">Empresario</span>
+                                    <span class="rol-emp-hint">Meta fondo de emergencia: 9 meses</span>
+                                </span>
+                            </label>
+                            <label class="rol-emp-option">
+                                <input type="radio" name="tipo-ingresos-activos" value="mixto">
+                                <span class="rol-emp-radio-dot"></span>
+                                <span class="rol-emp-text">
+                                    <span class="rol-emp-label">Mixto (salario + negocio)</span>
+                                    <span class="rol-emp-hint">Meta fondo de emergencia: 9 meses</span>
+                                </span>
+                            </label>
+                        </div>
+                        <small style="margin-top:6px;display:block">Determina la meta del fondo de emergencia en la Capa 2</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Fecha del Análisis *</label>
+                        <input type="date" id="client-analysis-date" required>
+                        <small>Se muestra en el dashboard</small>
+                    </div>
+
+                    <div class="form-row" id="education-costs-row" style="display:none;">
+                        <div class="form-group">
+                            <label>Gastos de educación de hijos (COP)</label>
+                            <input type="number" id="client-education-costs" step="1000" placeholder="0" value="0">
+                            <small>Valor <strong>total estimado</strong> para todos los hijos hasta terminar universidad — se suma a la cobertura de vida requerida</small>
+                        </div>
+                        <div class="form-group">
+                            <label>¿Ejerce profesión liberal?</label>
+                            <select id="client-liberal-profession">
+                                <option value="">No</option>
+                                <option value="Médico">Médico / Especialista</option>
+                                <option value="Abogado">Abogado</option>
+                                <option value="Ingeniero">Ingeniero consultor</option>
+                                <option value="Arquitecto">Arquitecto</option>
+                                <option value="Contador">Contador / Auditor</option>
+                                <option value="Odontólogo">Odontólogo</option>
+                                <option value="Psicólogo">Psicólogo / Terapeuta</option>
+                                <option value="Asesor financiero">Asesor financiero</option>
+                                <option value="Otro">Otro (profesión liberal)</option>
+                            </select>
+                            <small>Activa criterio RC por responsabilidad profesional</small>
+                        </div>
+                    </div>
+                </div>
+                
+
+                <!-- Sección: Objetivos del Cliente -->
+                <div class="form-section" id="obj-section">
+                    <h4 class="form-section-title">Objetivos del Cliente</h4>
+
+                    <!-- CORTO PLAZO -->
+                    <div style="margin-bottom:18px;">
+                        <div class="obj-plazo-header">
+                            <span class="obj-plazo-title">Corto plazo · 1-3 años</span>
+                            <button type="button" class="obj-add-btn" id="obj-add-corto">+ Agregar objetivo</button>
+                        </div>
+                        <div class="obj-list" id="obj-list-corto"></div>
+                    </div>
+
+                    <!-- MEDIANO PLAZO -->
+                    <div style="margin-bottom:18px;">
+                        <div class="obj-plazo-header">
+                            <span class="obj-plazo-title">Mediano plazo · 3-10 años</span>
+                            <button type="button" class="obj-add-btn" id="obj-add-mediano">+ Agregar objetivo</button>
+                        </div>
+                        <div class="obj-list" id="obj-list-mediano"></div>
+                    </div>
+
+                    <!-- LARGO PLAZO (predeterminado) -->
+                    <div>
+                        <div class="obj-plazo-header">
+                            <span class="obj-plazo-title">Largo plazo · 15 años</span>
+                        </div>
+                        <div class="obj-largo-card" id="obj-largo-card">
+                            <!-- Renderizado por JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección 2: Cuestionario de Perfil de Riesgo -->
+                <div class="form-section">
+                    <h4 class="form-section-title">Cuestionario de Perfil de Riesgo</h4>
+                    <p style="margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">Responda las 5 preguntas para determinar el perfil de inversión</p>
+                    
+                    <!-- Pregunta 1 -->
+                    <div class="risk-question">
+                        <label class="risk-question-label">1. ¿Cuánto tiempo puede dejar invertido su dinero sin necesitarlo?</label>
+                        <div class="risk-options">
+                            <label class="risk-option">
+                                <input type="radio" name="risk-q1" value="1" required>
+                                <span>Menos de 2 años</span>
+                            </label>
+                            <label class="risk-option">
+                                <input type="radio" name="risk-q1" value="2">
+                                <span>2 a 5 años</span>
+                            </label>
+                            <label class="risk-option">
+                                <input type="radio" name="risk-q1" value="3">
+                                <span>Más de 5 años</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Pregunta 2 -->
+                    <div class="risk-question">
+                        <label class="risk-question-label">2. Si su inversión cae 20% en un mes, ¿qué hace?</label>
+                        <div class="risk-options">
+                            <label class="risk-option">
+                                <input type="radio" name="risk-q2" value="1" required>
+                                <span>Retiro todo</span>
+                            </label>
+                            <label class="risk-option">
+                                <input type="radio" name="risk-q2" value="2">
+                                <span>Espero a que se recupere</span>
+                            </label>
+                            <label class="risk-option">
+                                <input type="radio" name="risk-q2" value="3">
+                                <span>Aprovecho e invierto más</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Pregunta 3 -->
+                    <div class="risk-question">
+                        <label class="risk-question-label">3. ¿Cuál es su prioridad principal?</label>
+                        <div class="risk-options">
+                            <label class="risk-option">
+                                <input type="radio" name="risk-q3" value="1" required>
+                                <span>No perder capital</span>
+                            </label>
+                            <label class="risk-option">
+                                <input type="radio" name="risk-q3" value="2">
+                                <span>Balance riesgo-retorno</span>
+                            </label>
+                            <label class="risk-option">
+                                <input type="radio" name="risk-q3" value="3">
+                                <span>Crecer al máximo</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Pregunta 4 -->
+                    <div class="risk-question">
+                        <label class="risk-question-label">4. ¿Tiene experiencia invirtiendo?</label>
+                        <div class="risk-options">
+                            <label class="risk-option">
+                                <input type="radio" name="risk-q4" value="1" required>
+                                <span>Ninguna</span>
+                            </label>
+                            <label class="risk-option">
+                                <input type="radio" name="risk-q4" value="2">
+                                <span>Básica (fondos, CDTs)</span>
+                            </label>
+                            <label class="risk-option">
+                                <input type="radio" name="risk-q4" value="3">
+                                <span>Avanzada (acciones, ETFs)</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Pregunta 5 -->
+                    <div class="risk-question">
+                        <label class="risk-question-label">5. ¿Cuánto puede arriesgar sin afectar su vida?</label>
+                        <div class="risk-options">
+                            <label class="risk-option">
+                                <input type="radio" name="risk-q5" value="1" required>
+                                <span>Menos del 10%</span>
+                            </label>
+                            <label class="risk-option">
+                                <input type="radio" name="risk-q5" value="2">
+                                <span>Entre 10% y 30%</span>
+                            </label>
+                            <label class="risk-option">
+                                <input type="radio" name="risk-q5" value="3">
+                                <span>Más del 30%</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Resultado del Perfil -->
+                    <div id="risk-profile-result" style="display: none; margin-top: 1.5rem; padding: 1rem; border-radius: 8px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <div style="font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">Perfil de Riesgo</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; margin-top: 0.25rem;" id="risk-profile-name"></div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.75rem; color: #6b7280;">Puntaje</div>
+                                <div style="font-size: 1.25rem; font-weight: 600;" id="risk-profile-score"></div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.1);">
+                            <div style="font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">Horizonte de Inversión</div>
+                            <div style="font-size: 1.125rem; font-weight: 600; margin-top: 0.25rem;" id="investment-horizon"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección 3: Contacto -->
+                <div class="form-section">
+                    <h4 class="form-section-title">Información de Contacto (Opcional)</h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="client-email">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="tel" id="client-phone">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Notas</label>
+                        <textarea id="client-notes" rows="3"></textarea>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="cancel-client-modal">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="save-client-btn">Guardar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <div id="asset-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="asset-modal-title">Agregar Activo</h3>
+                <button class="modal-close" id="close-asset-modal">&times;</button>
+            </div>
+            <form id="asset-form" class="data-form">
+                <input type="hidden" id="asset-id">
+                
+                <!-- Sección 1: Identificación -->
+                <div class="form-section">
+                    <h4 class="form-section-title">Identificación del Activo</h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tipo *</label>
+                            <select id="asset-category" required>
+                                <option value="">Seleccionar tipo</option>
+                                <option value="Inmueble">Inmueble</option>
+                                <option value="Financiero">Financiero</option>
+                                <option value="Empresarial">Empresarial</option>
+                                <option value="Alternativo">Alternativo</option>
+                                <option value="Uso Personal">Uso Personal</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Subtipo</label>
+                            <select id="asset-subtype">
+                                <option value="">Seleccionar tipo primero</option>
+                            </select>
+                            <small id="liquidity-auto-hint" style="display:none; color:#10b981;"></small>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>¿Cuál? <span style="font-weight:400; color:#6b7280;">(producto o entidad específica)</span></label>
+                            <input type="text" id="asset-which" placeholder="Ej: Pibank, Bancolombia, Seguro de pensión con ahorro...">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Descripción / Nombre del activo *</label>
+                            <input type="text" id="asset-description" placeholder="Ej: Casa en Bogotá, ETF S&P 500" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección 2: Valoración -->
+                <div class="form-section">
+                    <h4 class="form-section-title">Valoración</h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Moneda *</label>
+                            <select id="asset-currency" required>
+                                <option value="COP">COP - Peso Colombiano</option>
+                                <option value="USD">USD - Dólar Estadounidense</option>
+                                <option value="EUR">EUR - Euro</option>
+                                <option value="GBP">GBP - Libra Esterlina</option>
+                                <option value="MXN">MXN - Peso Mexicano</option>
+                                <option value="BRL">BRL - Real Brasileño</option>
+                                <option value="ARS">ARS - Peso Argentino</option>
+                                <option value="CLP">CLP - Peso Chileno</option>
+                                <option value="PEN">PEN - Sol Peruano</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Valor original *</label>
+                            <input type="number" id="asset-value" step="0.01" placeholder="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Valor en COP</label>
+                            <input type="text" id="asset-value-cop" readonly placeholder="Se calcula automático" class="input-calculated">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Pasivo asociado <span style="font-weight:400; color:#6b7280;">(misma moneda)</span></label>
+                            <input type="number" id="asset-liability" step="0.01" placeholder="0" value="0">
+                        </div>
+                    </div>
+
+                    <!-- Seguro vida deudor — solo visible si hay pasivo -->
+                    <div class="form-group" id="seguro-deudor-group" style="display:none;">
+                        <label>¿Tiene seguro de vida deudor incorporado?
+                            <span style="font-weight:400;color:#6b7280;font-size:.82rem;">
+                                — si la deuda ya tiene seguro, no se suma a la cobertura de vida requerida
+                            </span>
+                        </label>
+                        <div class="toggle-group">
+                            <label class="toggle-option">
+                                <input type="radio" name="seguro-vida-deudor" id="svd-no" value="no" checked>
+                                <span class="toggle-label">No</span>
+                            </label>
+                            <label class="toggle-option">
+                                <input type="radio" name="seguro-vida-deudor" id="svd-si" value="si">
+                                <span class="toggle-label">Sí</span>
+                            </label>
+                        </div>
+                        <small>Ej.: crédito hipotecario con seguro de vida incorporado en la cuota</small>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Patrimonio neto COP</label>
+                            <input type="text" id="asset-net-worth-cop" readonly placeholder="Se calcula automático" class="input-calculated">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tasa de interés del pasivo (%)</label>
+                            <input type="number" id="asset-liability-rate" step="0.01" placeholder="0" value="0">
+                            <small>Solo si hay deuda asociada</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección 3: Ubicación y Estructura Legal -->
+                <div class="form-section">
+                    <h4 class="form-section-title">Ubicación y Protección Legal</h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>País / Jurisdicción *</label>
+                            <select id="asset-location" required>
+                                <option value="">Seleccionar país…</option>
+                                <option value="Colombia">Colombia</option>
+                                <option value="Estados Unidos">Estados Unidos</option>
+                                <option value="Panamá">Panamá</option>
+                                <option value="España">España</option>
+                                <option value="México">México</option>
+                                <option value="Reino Unido">Reino Unido</option>
+                                <option value="Islas Caimán">Islas Caimán</option>
+                                <option value="Islas Vírgenes Británicas">Islas Vírgenes Británicas</option>
+                                <option value="Isle of Man">Isle of Man</option>
+                                <option value="Luxemburgo">Luxemburgo</option>
+                                <option value="Suiza">Suiza</option>
+                                <option value="Canadá">Canadá</option>
+                                <option value="Brasil">Brasil</option>
+                                <option value="Argentina">Argentina</option>
+                                <option value="Chile">Chile</option>
+                                <option value="Peru">Peru</option>
+                                <option value="Uruguay">Uruguay</option>
+                                <option value="Portugal">Portugal</option>
+                                <option value="Francia">Francia</option>
+                                <option value="Alemania">Alemania</option>
+                                <option value="Dubai (UAE)">Dubai (UAE)</option>
+                                <option value="Singapur">Singapur</option>
+                                <option value="Otro">Otro (especificar)</option>
+                            </select>
+                            <small>País donde está ubicado o registrado</small>
+                            <div id="asset-location-otro-group" style="display:none; margin-top:6px;">
+                                <input type="text" id="asset-location-otro" placeholder="Especificar país o jurisdicción…">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Ciudad <span style="font-weight:400; color:#6b7280;">(opcional)</span></label>
+                            <input type="text" id="asset-city" placeholder="Bogotá, Miami, Madrid...">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Estructura Legal *</label>
+                            <select id="asset-legal-structure" required>
+                                <option value="Propiedad Directa">Propiedad Directa (a nombre personal)</option>
+                                <option value="Sociedad Comercial">Sociedad Comercial Local</option>
+                                <option value="LLC">LLC (Limited Liability Company)</option>
+                                <option value="Holding">Holding / Sociedad Holding</option>
+                                <option value="Fideicomiso">Fideicomiso</option>
+                                <option value="Trust">Trust Offshore</option>
+                                <option value="Fundación">Fundación Privada</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Rol empresarial — solo visible cuando categoría = Empresarial -->
+                    <div class="form-group" id="rol-empresarial-group">
+                        <label>¿Cuál es el rol del cliente en esta empresa?
+                            <span style="font-weight:400;color:#6b7280;font-size:.82rem;">
+                                — determina la exposición de RC empresarial
+                            </span>
+                        </label>
+                        <div class="rol-emp-options">
+                            <label class="rol-emp-option">
+                                <input type="radio" name="rol-empresarial" id="rol-socio" value="socio">
+                                <span class="rol-emp-radio-dot"></span>
+                                <span class="rol-emp-text">
+                                    <span class="rol-emp-label">Socio sin cargo directivo</span>
+                                    <span class="rol-emp-hint">Responsabilidad limitada al aporte — no genera RC automática</span>
+                                </span>
+                            </label>
+                            <label class="rol-emp-option">
+                                <input type="radio" name="rol-empresarial" id="rol-representante" value="representante_legal">
+                                <span class="rol-emp-radio-dot"></span>
+                                <span class="rol-emp-text">
+                                    <span class="rol-emp-label">Representante Legal / Gerente</span>
+                                    <span class="rol-emp-hint">Exposición por decisiones de gestión — recomienda D&amp;O</span>
+                                </span>
+                            </label>
+                            <label class="rol-emp-option">
+                                <input type="radio" name="rol-empresarial" id="rol-junta" value="junta_directiva">
+                                <span class="rol-emp-radio-dot"></span>
+                                <span class="rol-emp-text">
+                                    <span class="rol-emp-label">Miembro de Junta Directiva</span>
+                                    <span class="rol-emp-hint">Exposición por decisiones de gestión — recomienda D&amp;O</span>
+                                </span>
+                            </label>
+                            <label class="rol-emp-option">
+                                <input type="radio" name="rol-empresarial" id="rol-propietario" value="propietario_natural">
+                                <span class="rol-emp-radio-dot"></span>
+                                <span class="rol-emp-text">
+                                    <span class="rol-emp-label">Propietario único / Persona Natural</span>
+                                    <span class="rol-emp-hint">Exposición ilimitada con patrimonio personal — recomienda RC Empresarial</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección 4: Liquidez e Ingresos -->
+                <div class="form-section">
+                    <h4 class="form-section-title">Liquidez e Ingresos</h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nivel de Liquidez *</label>
+                            <select id="asset-liquidity" required>
+                                <option value="Alta">Alta — disponible en &lt; 7 días</option>
+                                <option value="Media">Media — disponible en 7 a 90 días</option>
+                                <option value="Baja">Baja — disponible en &gt; 90 días</option>
+                                <option value="Ilíquida">Ilíquida — difícil de vender rápido</option>
+                            </select>
+                            <small>Se asigna automáticamente al elegir subtipo. Puedes ajustarla.</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Retorno Anual Esperado (%)</label>
+                            <input type="number" id="asset-expected-return" step="0.1" placeholder="8.0" value="0">
+                            <small>Apreciación + ingresos anuales estimados</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Toggle Genera Ingreso Pasivo -->
+                    <div class="form-group">
+                        <label>¿Genera ingreso pasivo?</label>
+                        <div class="toggle-group">
+                            <label class="toggle-option">
+                                <input type="radio" name="generates-income" id="generates-income-no" value="false" checked>
+                                <span class="toggle-label">No</span>
+                            </label>
+                            <label class="toggle-option">
+                                <input type="radio" name="generates-income" id="generates-income-yes" value="true">
+                                <span class="toggle-label">Sí</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="monthly-income-group" style="display:none;">
+                        <div class="form-group">
+                            <label>Ingreso mensual COP</label>
+                            <input type="number" id="asset-monthly-income" step="0.01" placeholder="0" value="0">
+                            <small>Rentas, dividendos, intereses — en pesos colombianos</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección 5: Sector (visible solo para Financiero o Empresarial con subtipos relevantes) -->
+                <div class="form-section" id="sector-section" style="display: none;">
+                    <h4 class="form-section-title">Información Sectorial</h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Sector</label>
+                            <select id="asset-sector">
+                                <option value="">— Seleccionar sector —</option>
+                                <option value="Global / Diversificado">Global / Diversificado (ETFs globales, fondos multiactivo)</option>
+                                <option value="Tecnología">Tecnología</option>
+                                <option value="Salud y Farmacéutico">Salud y Farmacéutico</option>
+                                <option value="Energía y Recursos Naturales">Energía y Recursos Naturales</option>
+                                <option value="Financiero y Bancario">Financiero y Bancario</option>
+                                <option value="Consumo y Retail">Consumo y Retail</option>
+                                <option value="Industrial y Manufactura">Industrial y Manufactura</option>
+                                <option value="Real Estate / Inmobiliario">Real Estate / Inmobiliario</option>
+                                <option value="Materias Primas">Materias Primas</option>
+                                <option value="Infraestructura">Infraestructura</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                            <small>Para acciones, ETFs, fondos y negocios sectoriales</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Ticker / Símbolo</label>
+                            <input type="text" id="asset-ticker" placeholder="AAPL, SPY, MSFT...">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección 6: Cartera gestionada por terceros (visible solo para ese subtipo) -->
+                <div class="form-section" id="cartera-group" style="display: none;">
+                    <h4 class="form-section-title">Cartera gestionada por terceros</h4>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Gestor / Entidad administradora</label>
+                            <input type="text" id="asset-gestor-entidad"
+                                placeholder="Skandia, Credicorp, BTG Pactual, Family Office XYZ…">
+                            <small>Nombre del family office, fiduciaria, wealth manager o gestor externo</small>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Monto accesible para liquidación rápida <span style="font-weight:400;color:#6b7280;">(COP)</span></label>
+                            <input type="number" id="asset-monto-accesible" min="0"
+                                placeholder="Puede ser menor al valor total de la cartera">
+                            <small>Si se deja vacío se usará el valor total del activo. Este monto se usa en Capa 2 como activo semilíquido.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Plazo estimado de liquidación <span style="font-weight:400;color:#6b7280;">(días hábiles)</span></label>
+                            <input type="number" id="asset-plazo-liquidacion" min="1"
+                                placeholder="Ej: 5, 10, 30…">
+                            <small>Días hábiles necesarios para acceder al monto liquidable</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Adquisición (solo activos financieros seleccionados) -->
+                <div class="form-section" id="adquisicion-group" style="display:none;">
+                    <h4 class="form-section-title">Adquisición <span style="font-weight:400;color:#6b7280;font-size:.85em;">(opcional)</span></h4>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Valor de adquisición <span style="font-weight:400;color:#6b7280;">(COP)</span></label>
+                            <input type="number" id="asset-valor-adquisicion" min="0"
+                                placeholder="Valor pagado al comprar el activo">
+                            <small>Si no se ingresa no se calcula retorno</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de adquisición</label>
+                            <input type="date" id="asset-fecha-adquisicion">
+                            <small>Si no se ingresa no se calcula retorno</small>
+                        </div>
+                    </div>
+
+                    <div id="adquisicion-resultado" class="adq-resultado" style="display:none;"></div>
+                    <div id="adquisicion-hint" class="adq-hint" style="display:none;"></div>
+                </div>
+
+                <!-- Sección: Seguro de pensión con ahorro -->
+                <div class="form-section" id="seguro-pension-group" style="display:none;">
+                    <h4 class="form-section-title">Seguro de pensión con ahorro</h4>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Entidad aseguradora</label>
+                            <input type="text" id="sp-entidad" placeholder="Ej: Skandia, Bolívar, Sura, Allianz, MetLife…">
+                        </div>
+                        <div class="form-group">
+                            <label>Prima mensual <span style="font-weight:400;color:#6b7280;">(COP, opcional)</span></label>
+                            <input type="number" id="sp-prima-mensual" min="0" placeholder="Prima que paga el cliente cada mes">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Objetivo de ahorro <span style="font-weight:400;color:#6b7280;">(COP)</span></label>
+                            <input type="number" id="sp-objetivo-ahorro" min="0"
+                                placeholder="Capital proyectado al vencimiento de la póliza">
+                            <small>Capital que el cliente recibirá al vencimiento — se muestra en el mapa patrimonial</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor asegurado actual <span style="font-weight:400;color:#6b7280;">(COP)</span></label>
+                            <input type="number" id="sp-valor-asegurado" min="0"
+                                placeholder="Cobertura de vida vigente hoy">
+                            <small>⚠️ Cobertura decreciente — consulte el estado de cuenta de la póliza</small>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>¿Incluye Incapacidad Total y Permanente (ITP)?</label>
+                            <div class="toggle-group" style="margin-top:6px;">
+                                <label class="toggle-option">
+                                    <input type="radio" name="sp-incluye-itp" value="si" id="sp-itp-si">
+                                    <span>Sí</span>
+                                </label>
+                                <label class="toggle-option">
+                                    <input type="radio" name="sp-incluye-itp" value="no" id="sp-itp-no" checked>
+                                    <span>No</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group" id="sp-itp-valor-group" style="display:none;">
+                            <label>Valor asegurado ITP <span style="font-weight:400;color:#6b7280;">(COP)</span></label>
+                            <input type="number" id="sp-valor-itp" min="0" placeholder="Suma asegurada por invalidez">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Fecha de vencimiento de la póliza</label>
+                            <input type="date" id="sp-fecha-vencimiento">
+                        </div>
+                    </div>
+
+                    <div id="sp-vence-info" class="sp-vence-info" style="display:none;"></div>
+                    <div id="sp-alineacion" style="display:none;"></div>
+                </div>
+
+                <!-- Sección 7: Observaciones -->
+                <div class="form-section">
+                    <h4 class="form-section-title">Observaciones</h4>
+                    
+                    <div class="form-group">
+                        <label>Notas adicionales</label>
+                        <textarea id="asset-observations" rows="3" placeholder="Notas adicionales sobre el activo..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="cancel-asset-modal">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="save-asset-btn">Guardar Activo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <!-- Modal for Delete Confirmation -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Confirmar Eliminación</h3>
+                <button class="modal-close" id="close-delete-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="delete-warning">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    <p>¿Está seguro de que desea eliminar este elemento?</p>
+                    <p class="delete-message">Esta acción no se puede deshacer.</p>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" id="cancel-delete">Cancelar</button>
+                <button type="button" class="btn-danger" id="confirm-delete">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+    <!-- Motor de Cálculos Patrimoniales -->
+    <script src="calculadora-patrimonial.js"></script>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
