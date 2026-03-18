@@ -113,7 +113,7 @@ body {
 }
 
 .loading-text {
-    font-size: 1rem;
+    font-size: 1.3rem;
     font-weight: 500;
     opacity: 0.9;
     margin-top: var(--spacing-md);
@@ -160,13 +160,13 @@ body {
 
 .login-branding h1 {
     font-family: var(--font-display);
-    font-size: 2.5rem;
+    font-size: 2.8rem;
     font-weight: 700;
     margin-bottom: var(--spacing-sm);
 }
 
 .subtitle {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     opacity: 0.9;
 }
 
@@ -189,7 +189,7 @@ body {
 }
 
 .feature-item h3 {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     font-weight: 600;
     margin-bottom: var(--spacing-xs);
 }
@@ -246,7 +246,7 @@ body {
     padding: 0.75rem 1rem;
     border: 1px solid var(--gray-300);
     border-radius: var(--radius-md);
-    font-size: 1rem;
+    font-size: 1.3rem;
     transition: var(--transition);
     font-family: var(--font-primary);
 }
@@ -292,7 +292,7 @@ body {
     padding: 0.875rem 1.5rem;
     border: none;
     border-radius: var(--radius-md);
-    font-size: 1rem;
+    font-size: 1.3rem;
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
@@ -342,7 +342,7 @@ body {
     background: white;
     padding: 0 var(--spacing-md);
     color: var(--gray-500);
-    font-size: 0.875rem;
+    font-size: 1.3rem;
 }
 
 /* Main App Layout */
@@ -403,7 +403,7 @@ body {
 .nav-divider {
     padding: var(--spacing-md) var(--spacing-sm);
     color: rgba(255, 255, 255, 0.5);
-    font-size: 0.75rem;
+    font-size: 1.2rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -486,7 +486,7 @@ body {
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 1.25rem;
+    font-size: 1.3rem;
 }
 
 .user-info {
@@ -499,7 +499,7 @@ body {
 }
 
 .user-role {
-    font-size: 0.875rem;
+    font-size: 1.3rem;
     opacity: 0.7;
 }
 
@@ -511,7 +511,7 @@ body {
 }
 
 .badge-label {
-    font-size: 0.75rem;
+    font-size: 1.2rem;
     opacity: 0.7;
     display: block;
     margin-bottom: 0.25rem;
@@ -519,7 +519,7 @@ body {
 
 .badge-name {
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 1.3rem;
 }
 
 .btn-logout {
@@ -586,7 +586,7 @@ body {
 }
 
 .header-title h1 {
-    font-size: 1.875rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--gray-900);
     margin-bottom: 0.25rem;
@@ -594,7 +594,7 @@ body {
 
 .header-title p {
     color: var(--gray-600);
-    font-size: 0.875rem;
+    font-size: 1.3rem;
 }
 
 .header-actions {
@@ -632,7 +632,7 @@ body {
     right: -4px;
     background: var(--danger);
     color: white;
-    font-size: 0.75rem;
+    font-size: 1.2rem;
     font-weight: 700;
     padding: 0.125rem 0.375rem;
     border-radius: 10px;
@@ -729,7 +729,7 @@ body {
 }
 
 .kpi-header h3 {
-    font-size: 0.875rem;
+    font-size: 1.3rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -737,14 +737,14 @@ body {
 }
 
 .kpi-value {
-    font-size: 2.5rem;
-    font-weight: 800;
+    font-size: 2.8rem;
+    font-weight: 700;
     margin-bottom: var(--spacing-md);
     font-family: var(--font-display);
 }
 
 .kpi-value.score {
-    font-size: 3rem;
+    font-size: 2.8rem;
 }
 
 .kpi-value.alert {
@@ -761,7 +761,7 @@ body {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
-    font-size: 0.875rem;
+    font-size: 1.3rem;
     font-weight: 600;
 }
 
@@ -802,7 +802,7 @@ body {
 }
 
 .kpi-label {
-    font-size: 0.875rem;
+    font-size: 1.3rem;
     opacity: 0.8;
 }
 
@@ -810,7 +810,7 @@ body {
     display: inline-block;
     padding: 0.25rem 0.75rem;
     border-radius: 10px;
-    font-size: 0.75rem;
+    font-size: 1.2rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -855,13 +855,13 @@ body {
 }
 
 .chart-header h3 {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: var(--gray-900);
 }
 
 .chart-subtitle {
-    font-size: 0.875rem;
+    font-size: 1.3rem;
     color: var(--gray-600);
     margin-top: 0.25rem;
 }
@@ -870,7 +870,7 @@ body {
     padding: 0.5rem 1rem;
     border: 1px solid var(--gray-300);
     border-radius: var(--radius-md);
-    font-size: 0.875rem;
+    font-size: 1.3rem;
     cursor: pointer;
 }
 
@@ -890,7 +890,7 @@ body {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
-    font-size: 0.875rem;
+    font-size: 1.3rem;
 }
 
 .legend-color {
@@ -936,17 +936,17 @@ body {
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 1.25rem;
+    font-size: 1.3rem;
 }
 
 .layer-info h4 {
-    font-size: 1.125rem;
+    font-size: 1.3rem;
     font-weight: 700;
     margin-bottom: 0.25rem;
 }
 
 .layer-info p {
-    font-size: 0.875rem;
+    font-size: 1.3rem;
     color: var(--gray-600);
 }
 
@@ -1004,7 +1004,7 @@ body {
 
 .quick-actions-card h3,
 .timeline-card h3 {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     font-weight: 700;
     margin-bottom: var(--spacing-lg);
 }
@@ -1059,7 +1059,7 @@ body {
 }
 
 .action-content p {
-    font-size: 0.875rem;
+    font-size: 1.3rem;
     color: var(--gray-600);
 }
 
@@ -1140,7 +1140,7 @@ body {
 }
 
 .timeline-content p {
-    font-size: 0.875rem;
+    font-size: 1.3rem;
     color: var(--gray-600);
 }
 
@@ -1157,7 +1157,7 @@ body {
 
 .section-intro p {
     color: var(--gray-600);
-    font-size: 1.125rem;
+    font-size: 1rem;
 }
 
 .form-card {
@@ -1213,7 +1213,7 @@ body {
     text-align: left;
     font-weight: 600;
     color: var(--gray-700);
-    font-size: 0.875rem;
+    font-size: 1.3rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -1247,7 +1247,7 @@ body {
 
 .empty-message p {
     color: var(--gray-600);
-    font-size: 1.125rem;
+    font-size: 1.3rem;
 }
 
 /* Modal */
@@ -1297,7 +1297,7 @@ body {
 }
 
 .form-section-title {
-    font-size: 1.125rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: var(--primary-color);
     margin-bottom: var(--spacing-md);
@@ -1317,7 +1317,7 @@ body {
 .form-group small {
     display: block;
     margin-top: 0.25rem;
-    font-size: 0.75rem;
+    font-size: 1.2rem;
     color: var(--gray-600);
     font-style: italic;
 }
@@ -1379,14 +1379,14 @@ body {
 }
 
 .delete-warning p {
-    font-size: 1.125rem;
+    font-size: 1.3rem;
     font-weight: 600;
     color: var(--gray-900);
     margin-bottom: var(--spacing-sm);
 }
 
 .delete-warning .delete-message {
-    font-size: 0.875rem;
+    font-size: 1.3rem;
     font-weight: 400;
     color: var(--gray-600);
 }
@@ -1395,7 +1395,7 @@ body {
     padding: 0.875rem 1.5rem;
     border: none;
     border-radius: var(--radius-md);
-    font-size: 1rem;
+    font-size: 1.3rem;
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
@@ -1553,13 +1553,13 @@ body {
 }
 
 .capa-header h3 {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     font-weight: 700;
     margin-bottom: 0.25rem;
 }
 
 .capa-header p {
-    font-size: 0.875rem;
+    font-size: 1.3rem;
     color: var(--gray-600);
 }
 
@@ -1653,7 +1653,7 @@ body {
 
 .placeholder-content p {
     color: var(--gray-600);
-    font-size: 1.125rem;
+    font-size: 1.3rem;
 }
 
 /* Clients Section */
@@ -1711,13 +1711,13 @@ body {
 }
 
 .stat-label {
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     color: var(--gray-600);
     margin-bottom: 0.25rem;
 }
 
 .stat-value {
-    font-size: 1.875rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--gray-900);
 }
@@ -1745,14 +1745,14 @@ body {
     padding: 0.75rem 1rem;
     border: 1px solid var(--gray-300);
     border-radius: var(--radius-md);
-    font-size: 1rem;
+    font-size: 1.3rem;
 }
 
 .clients-filters select {
     padding: 0.75rem 1rem;
     border: 1px solid var(--gray-300);
     border-radius: var(--radius-md);
-    font-size: 1rem;
+    font-size: 1.3rem;
     min-width: 180px;
 }
 
@@ -1787,15 +1787,15 @@ body {
 }
 
 .client-avatar {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 1.25rem;
+    font-size: 1rem;
     color: white;
     flex-shrink: 0;
 }
@@ -1808,15 +1808,15 @@ body {
 
 .client-name {
     font-weight: 700;
-    font-size: 1.125rem;
-    margin-bottom: 0.25rem;
+    font-size: 1.05rem;
+    margin-bottom: 0.15rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .client-email {
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     color: var(--gray-600);
     white-space: nowrap;
     overflow: hidden;
@@ -1824,11 +1824,12 @@ body {
 }
 
 .client-status-badge {
-    padding: 0.25rem 0.75rem;
+    padding: 0.2rem 0.6rem;
     border-radius: var(--radius-sm);
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
+    flex-shrink: 0;
 }
 
 .client-status-badge.active {
@@ -1853,16 +1854,22 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
 }
 
 .client-metric-label {
     color: var(--gray-600);
+    flex-shrink: 0;
 }
 
 .client-metric-value {
     font-weight: 600;
     color: var(--gray-900);
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
 }
 
 .client-card-actions {
@@ -1879,7 +1886,7 @@ body {
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: var(--transition);
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     font-weight: 500;
     display: flex;
     align-items: center;
@@ -1921,7 +1928,7 @@ body {
 
 .empty-clients p {
     color: var(--gray-600);
-    font-size: 1.125rem;
+    font-size: 1.3rem;
     margin-bottom: var(--spacing-lg);
 }
 
@@ -1942,7 +1949,7 @@ body {
     font-weight: 600;
     color: #1f2937;
     margin-bottom: 0.75rem;
-    font-size: 0.9375rem;
+    font-size: 1.3rem;
 }
 
 .risk-options {
@@ -2015,7 +2022,7 @@ body {
 #rol-empresarial-group > label {
     color: #374151;
     font-weight: 600;
-    font-size: .875rem;
+    font-size: 1.3rem;
 }
 
 /* Contenedor de opciones */
@@ -2059,7 +2066,7 @@ body {
 
 /* Etiqueta de la opción — legible sobre fondo gris claro */
 #rol-empresarial-group .rol-emp-label {
-    font-size: .875rem;
+    font-size: 1.3rem;
     font-weight: 600;
     color: #333333;
     line-height: 1.3;
@@ -2067,7 +2074,7 @@ body {
 
 /* Texto de ayuda — legible sobre fondo blanco */
 #rol-empresarial-group .rol-emp-hint {
-    font-size: 12px;
+    font-size: 1.2rem;
     color: #666666;
     line-height: 1.35;
 }
@@ -2102,7 +2109,7 @@ body {
     --db-border:         #1e2235;
     --db-text-primary:   #f0f2ff;
     --db-text-secondary: #8b90a0;
-    --db-text-muted:     #4a4f64;
+    --db-text-muted:     #8892a4;
     --db-success:        #00c896;
     --db-warning:        #f5a623;
     --db-danger:         #ff4d6d;
@@ -2112,7 +2119,6 @@ body {
 
 /* ── Section background ────────────────────────────────────────────────── */
 #dashboard-section {
-    background: var(--db-bg);
     padding: 24px;
     flex-direction: column;
     gap: 20px;
@@ -2139,9 +2145,7 @@ body {
     overflow: hidden;
     transition: background 0.25s ease;
 }
-#dashboard-section .db-card:hover {
-    background: var(--db-card-hover);
-}
+
 
 /* ── Semaphore top-border (3px) driven by .card-* class ───────────────── */
 #dashboard-section .db-card::before {
@@ -2169,7 +2173,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 11px;
+    font-size: 1.2rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -2192,14 +2196,14 @@ body {
 }
 
 #dashboard-section .db-hero-value {
-    font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+    font-size: 2.8rem;
     font-weight: 800;
     color: var(--db-gold);
     line-height: 1.1;
     letter-spacing: -0.03em;
 }
 #dashboard-section .db-hero-secondary {
-    font-size: 14px;
+    font-size: 1.3rem;
     color: var(--db-text-secondary);
     margin-top: -6px;
 }
@@ -2217,19 +2221,19 @@ body {
 }
 #dashboard-section .db-breakdown-item { display: flex; flex-direction: column; gap: 2px; }
 #dashboard-section .db-breakdown-label {
-    font-size: 11px;
+    font-size: 1.2rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--db-text-muted);
 }
-#dashboard-section .db-breakdown-val { font-size: 14px; font-weight: 700; }
+#dashboard-section .db-breakdown-val { font-size: 1.3rem; font-weight: 700; }
 #dashboard-section .db-val--green { color: var(--db-success); }
 #dashboard-section .db-val--red   { color: var(--db-danger); }
-#dashboard-section .db-breakdown-divider { font-size: 1.4rem; color: var(--db-text-muted); margin: 0 4px; }
+#dashboard-section .db-breakdown-divider { font-size: 1.5rem; color: var(--db-text-muted); margin: 0 4px; }
 
 /* TRM footer */
 #dashboard-section #trm-pie-dashboard {
-    font-size: 12px;
+    font-size: 1.2rem;
     color: var(--db-text-muted);
     font-style: italic;
     padding-top: 4px;
@@ -2244,25 +2248,25 @@ body {
     border-radius: 10px;
 }
 #dashboard-section .db-if-numero-label {
-    font-size: 11px;
+    font-size: 1.2rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--db-text-muted);
 }
 #dashboard-section .db-if-numero-val {
-    font-size: 22px;
+    font-size: 2rem;
     font-weight: 700;
     color: var(--db-text-primary);
 }
 #dashboard-section .db-if-numero-sub {
-    font-size: 12px;
+    font-size: 1.2rem;
     color: var(--db-text-muted);
     font-style: italic;
 }
 
 #dashboard-section .db-if-pct-big {
-    font-size: clamp(2rem, 4vw, 2.8rem);
-    font-weight: 800;
+    font-size: 2rem;
+    font-weight: 700;
     color: var(--db-gold);
     line-height: 1;
     letter-spacing: -0.04em;
@@ -2272,7 +2276,7 @@ body {
 #dashboard-section #db-if-detalle {
     display: block;
     margin-top: 8px;
-    font-size: 13px;
+    font-size: 1.2rem;
     color: var(--db-text-secondary);
 }
 #dashboard-section .db-if-row {
@@ -2293,7 +2297,7 @@ body {
     opacity: 0.7;
 }
 #dashboard-section .db-if-sub {
-    font-size: 11px;
+    font-size: 1.2rem;
     color: var(--db-text-muted);
     font-style: italic;
     padding: 2px 0 4px;
@@ -2332,7 +2336,7 @@ body {
 }
 #dashboard-section .db-semaforo-pct,
 #dashboard-section .db-semaforo-label {
-    font-size: 13px; font-weight: 600; color: var(--db-text-secondary);
+    font-size: 1.2rem; font-weight: 600; color: var(--db-text-secondary);
 }
 #dashboard-section .db-semaforo--verde  .db-semaforo-pct,
 #dashboard-section .db-semaforo--verde  .db-semaforo-label  { color: var(--db-success); }
@@ -2360,7 +2364,7 @@ body {
 #dashboard-section .db-fill--yellow { background: var(--db-warning); }
 #dashboard-section .db-fill--red    { background: var(--db-danger); }
 #dashboard-section .db-progress-caption {
-    font-size: 12px;
+    font-size: 1.2rem;
     color: var(--db-text-muted);
     font-style: italic;
 }
@@ -2373,7 +2377,7 @@ body {
     gap: 12px;
 }
 #dashboard-section .db-metric-big {
-    font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+    font-size: 2rem;
     font-weight: 700;
     color: var(--db-text-primary);
 }
@@ -2393,19 +2397,19 @@ body {
     align-items: center; text-align: center;
 }
 #dashboard-section .db-meta-year {
-    font-size: 10px;
+    font-size: 1.2rem;
     color: var(--db-text-muted);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: .08em;
 }
 #dashboard-section .db-meta-target {
-    font-size: 13px;
+    font-size: 1.2rem;
     font-weight: 700;
     color: var(--db-text-primary);
 }
 #dashboard-section .db-meta-pct {
-    font-size: 11px;
+    font-size: 1.2rem;
     color: var(--db-text-secondary);
 }
 
@@ -2416,7 +2420,7 @@ body {
     background: rgba(255,255,255,0.03);
     border: 1px solid var(--db-border);
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 1.2rem;
 }
 #dashboard-section .db-gap-row svg { stroke: var(--db-text-muted); }
 #dashboard-section .db-gap-label { color: var(--db-text-secondary); flex: 1; }
@@ -2425,7 +2429,7 @@ body {
 
 #dashboard-section .db-liquidez-detalle {
     display: flex; justify-content: space-between;
-    font-size: 12px; color: var(--db-text-muted);
+    font-size: 1.2rem; color: var(--db-text-muted);
     padding-top: 4px;
 }
 #dashboard-section .db-detail-val { color: var(--db-text-secondary); font-weight: 600; }
@@ -2437,13 +2441,13 @@ body {
 #dashboard-section .db-chart-legend { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
 #dashboard-section .db-legend-item {
     display: flex; align-items: center; gap: 10px;
-    font-size: 13px; color: var(--db-text-secondary);
+    font-size: 1.2rem; color: var(--db-text-secondary);
 }
 #dashboard-section .db-legend-dot {
     width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0;
 }
 #dashboard-section .db-legend-pct { margin-left: auto; font-weight: 700; color: var(--db-text-primary); }
-#dashboard-section .db-legend-empty { font-size: 13px; color: var(--db-text-muted); }
+#dashboard-section .db-legend-empty { font-size: 1.2rem; color: var(--db-text-muted); }
 
 /* ── Alertas (bloques 4 y 5) ───────────────────────────────────────────── */
 #dashboard-section .db-alert {
@@ -2452,7 +2456,7 @@ body {
     border: 1px solid rgba(255,77,109,0.25);
     border-radius: 8px;
     padding: 10px 14px;
-    font-size: 12px;
+    font-size: 1.2rem;
     color: rgba(255,77,109,0.85);
 }
 #dashboard-section .db-alert svg { flex-shrink: 0; margin-top: 1px; stroke: var(--db-danger); }
@@ -2462,7 +2466,7 @@ body {
     #dashboard-section .db-row--top    { grid-template-columns: 1fr; }
     #dashboard-section .db-row--mid    { grid-template-columns: 1fr; }
     #dashboard-section .db-row--charts { grid-template-columns: 1fr; }
-    #dashboard-section .db-hero-value  { font-size: 1.8rem; }
+    #dashboard-section .db-hero-value  { font-size: 2rem; }
 }
 @media (max-width: 640px) {
     #dashboard-section { padding: 16px; gap: 14px; }
@@ -2474,7 +2478,7 @@ body {
 /* ── Dashboard: bloques de barra concentración (B7-B10) ──────────────────── */
 #dashboard-section .db-conc-row {
     display: flex; align-items: center; gap: 8px;
-    font-size: .78rem; color: var(--db-text-secondary);
+    font-size: 1.2rem; color: var(--db-text-secondary);
 }
 #dashboard-section .db-conc-lbl { min-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #dashboard-section .db-conc-track {
@@ -2488,14 +2492,14 @@ body {
 }
 #dashboard-section .db-conc-fill--warn { background: linear-gradient(90deg, #f0c040, #fb923c); }
 #dashboard-section .db-conc-fill--bad  { background: linear-gradient(90deg, #f87171, #ff4d6d); }
-#dashboard-section .db-conc-pct { min-width: 36px; text-align: right; font-weight: 700; color: var(--db-text-primary); font-size: .73rem; }
-#dashboard-section .db-conc-cop { min-width: 100px; text-align: right; color: var(--db-text-muted); font-size: .7rem; }
+#dashboard-section .db-conc-pct { min-width: 36px; text-align: right; font-weight: 700; color: var(--db-text-primary); font-size: 1.2rem; }
+#dashboard-section .db-conc-cop { min-width: 100px; text-align: right; color: var(--db-text-muted); font-size: 1.2rem; }
 
 /* Resumen de concentraciones */
 #dashboard-section .db-resumen-item { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--db-border); }
 #dashboard-section .db-resumen-item:last-child { border-bottom: none; }
-#dashboard-section .db-resumen-dim { font-weight: 600; color: var(--db-text-secondary); min-width: 130px; font-size: .78rem; }
-#dashboard-section .db-resumen-msg { color: var(--db-text-primary); font-size: .78rem; }
+#dashboard-section .db-resumen-dim { font-weight: 600; color: var(--db-text-secondary); min-width: 130px; font-size: 1.2rem; }
+#dashboard-section .db-resumen-msg { color: var(--db-text-primary); font-size: 1.2rem; }
 
 @media (max-width: 767px) {
     #dashboard-section .db-conc-cop { display: none; }

@@ -1734,7 +1734,7 @@ function renderBloque4_TipoActivo(m) {
     const data   = hasData ? dist.map(d => d.pct)  : [100];
     const colors = hasData
         ? dist.map((d, i) => COLORES_TIPO[d.tipo] || COLORES_FALLBACK[i % COLORES_FALLBACK.length])
-        : ['#2d3748'];
+        : ['#edf0f4'];
 
     dbChartTipo = new Chart(ctx, {
         type: 'doughnut',
@@ -1745,10 +1745,10 @@ function renderBloque4_TipoActivo(m) {
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    backgroundColor: '#1a1e2e',
-                    titleColor: '#f0f2ff',
-                    bodyColor: '#8b90a0',
-                    borderColor: '#1e2235',
+                    backgroundColor: '#ffffff',
+                    titleColor: '#1e2a3a',
+                    bodyColor: '#5e6b7f',
+                    borderColor: '#e8ecf1',
                     borderWidth: 1,
                     callbacks: {
                         label: ctx => ` ${ctx.label}: ${ctx.parsed.toFixed(1)}%`
@@ -1811,7 +1811,7 @@ function renderBloque5_Moneda(m) {
     const data   = hasData ? dist.map(d => d.pct)    : [100];
     const colors = hasData
         ? dist.map((d, i) => COLORES_MONEDA[d.moneda] || COLORES_FALLBACK[i % COLORES_FALLBACK.length])
-        : ['#2d3748'];
+        : ['#edf0f4'];
 
     dbChartMoneda = new Chart(ctx, {
         type: 'doughnut',
@@ -1822,10 +1822,10 @@ function renderBloque5_Moneda(m) {
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    backgroundColor: '#1a1e2e',
-                    titleColor: '#f0f2ff',
-                    bodyColor: '#8b90a0',
-                    borderColor: '#1e2235',
+                    backgroundColor: '#ffffff',
+                    titleColor: '#1e2a3a',
+                    bodyColor: '#5e6b7f',
+                    borderColor: '#e8ecf1',
                     borderWidth: 1,
                     callbacks: {
                         label: ctx => ` ${ctx.label}: ${ctx.parsed.toFixed(1)}%`
@@ -1932,7 +1932,7 @@ function renderBloque6_IF(m, gastosMensualesCOP) {
                 ? '<div class="db-if-row db-if-gap"><span>Gap mensual</span>'
                   + '<strong>' + fmtCOP(gapMensual) + '/mes</strong></div>'
                 : '<div class="db-if-row"><span>Excedente mensual</span>'
-                  + '<strong style="color:var(--db-success,#00c896)">' + fmtCOP(retiroSostenible - gastosMensualesCOP) + '/mes ✅</strong></div>')
+                  + '<strong style="color:var(--db-success,#0d7a4f)">' + fmtCOP(retiroSostenible - gastosMensualesCOP) + '/mes ✅</strong></div>')
             + '<div class="db-if-divider"></div>'
         detalleEl.style.display = 'block';
     } else if (detalleEl) {
@@ -2569,13 +2569,13 @@ async function loadAssetsTable() {
 
             // Columna "Patrimonio neto COP": aviso si falta TRM
             const netoCOPCell = trmFalta
-                ? `<span style="color:#dc2626;font-size:0.8rem;">⚠ Ingresa el tipo de cambio</span>`
+                ? `<span style="color:#dc2626;font-size:1.2rem;">⚠ Ingresa el tipo de cambio</span>`
                 : `<span class="${netoCOP < 0 ? 'text-red' : ''}">${fmtCOP_local(netoCOP)}</span>`;
 
             // Cambio 5: para Seguro de pensión con ahorro, mostrar objetivo de ahorro con nota
             const esSeguroPension = asset.subtype === SUBTIPO_SEGURO_PENSION;
             const valorCeldaOriginal = esSeguroPension && asset.objetivoAhorro
-                ? `<span>${fmtCOP_local(asset.objetivoAhorro)}</span><br><small style="color:#64748b;font-size:.7rem">Objetivo al vencimiento — ${asset.fechaVencimiento ? asset.fechaVencimiento.split('-')[0] : '—'}</small>`
+                ? `<span>${fmtCOP_local(asset.objetivoAhorro)}</span><br><small style="color:#8892a4;font-size:1.2rem">Objetivo al vencimiento — ${asset.fechaVencimiento ? asset.fechaVencimiento.split('-')[0] : '—'}</small>`
                 : formatCurrency(asset.value, asset.currency || 'COP');
 
             const row = document.createElement('tr');
@@ -2621,7 +2621,7 @@ async function loadAssetsTable() {
 
             document.getElementById('total-patrimonio-cop').innerHTML =
                 `<strong>${fmtCOP_local(totalPatrimonioCOP)}</strong>` +
-                (hayTRMFaltante ? ' <span style="color:#dc2626;font-size:0.75rem;">⚠ activos sin TRM excluidos</span>' : '');
+                (hayTRMFaltante ? ' <span style="color:#dc2626;font-size:1.2rem;">⚠ activos sin TRM excluidos</span>' : '');
             document.getElementById('total-liquidez-meses').innerHTML =
                 `<strong>${mesesLiquidez} meses</strong>`;
             document.getElementById('total-ingresos-pasivos').innerHTML =
@@ -3656,7 +3656,7 @@ function c6BuildHtml(rp, met, clientData) {
               ${sucesoriasIF.map(a => `&nbsp;&nbsp;• ${a.name} — <em>${a.leg}</em>`).join('<br>')}
               <br><strong>% del patrimonio protegido: ${pctProtegido}%</strong>
            </div>`
-        : `<div class="c6-ayuda c6-ctx-auto" style="color:#64748b">No se detectaron estructuras sucesorias en el mapa de activos.</div>`;
+        : `<div class="c6-ayuda c6-ctx-auto" style="color:#8892a4">No se detectaron estructuras sucesorias en el mapa de activos.</div>`;
 
     const p6Html = `
         <div class="c4-q">
@@ -3998,7 +3998,7 @@ function c1BuildCapa1HTML(rp, met, gastosMes, clientData) {
                 ${tag}
             </div>`;
         }).join('')
-        : `<div style="font-size:.8rem;color:#64748b">Sin activos con ingreso pasivo registrados</div>`;
+        : `<div style="font-size:1.2rem;color:#8892a4">Sin activos con ingreso pasivo registrados</div>`;
 
     const sobrevAuto = met.ingPasivosSobrevCOP || 0;
     const ajusteIngVal = (ingPasivosAjuste !== null && ingPasivosAjuste !== undefined && ingPasivosAjuste !== '')
@@ -4088,7 +4088,7 @@ function c1BuildCapa1HTML(rp, met, gastosMes, clientData) {
                 <span class="c4-crit-num">C1</span>
                 <span class="c4-crit-title">Seguro de vida</span>
                 <span class="c4-tag-pts">Adecuada: 3 / Insuficiente: 1.5 / No tiene: 0</span>
-                <span class="c4-tag-pts" id="c4-vida-pts-badge" style="margin-left:auto;font-weight:800;color:#f0c040">${ptsTxt}</span>
+                <span class="c4-tag-pts" id="c4-vida-pts-badge" style="margin-left:auto;font-weight:700;color:#f0c040">${ptsTxt}</span>
             </div>
 
             <div class="c1v-section">
@@ -4122,8 +4122,8 @@ function c1BuildCapa1HTML(rp, met, gastosMes, clientData) {
             <!-- Paso 2: Pasivos no cubiertos -->
             <div class="c1v-block">
                 <div class="c1v-block-title">Paso 2 — Pasivos incluidos en cobertura requerida</div>
-                ${rowsInc || '<div style="font-size:.8rem;color:#64748b">Ninguno — todos tienen seguro deudor o se extinguen</div>'}
-                ${rowsExc ? `<hr class="c1v-divider"><div style="font-size:.72rem;color:#64748b;margin-bottom:4px">Excluidos:</div>${rowsExc}` : ''}
+                ${rowsInc || '<div style="font-size:1.2rem;color:#8892a4">Ninguno — todos tienen seguro deudor o se extinguen</div>'}
+                ${rowsExc ? `<hr class="c1v-divider"><div style="font-size:1.2rem;color:#8892a4;margin-bottom:4px">Excluidos:</div>${rowsExc}` : ''}
                 <hr class="c1v-divider">
                 <div class="c1v-total-row">
                     <span>Total pasivos no cubiertos (AUTO):</span>
@@ -4210,7 +4210,7 @@ function c1BuildCapa1HTML(rp, met, gastosMes, clientData) {
                     <span class="c4-rc-lbl">${item.label}</span>
                     <span class="c4-rc-badge" style="background:rgba(100,116,139,.25);color:#94a3b8">— No aplica</span>
                 </div>
-                ${item.sublabel ? `<div style="font-size:.76rem;color:#64748b;padding:4px 0 2px">${item.sublabel}</div>` : ''}
+                ${item.sublabel ? `<div style="font-size:1.2rem;color:#8892a4;padding:4px 0 2px">${item.sublabel}</div>` : ''}
             </div>`;
             }
             return `
@@ -4219,7 +4219,7 @@ function c1BuildCapa1HTML(rp, met, gastosMes, clientData) {
                     <span class="c4-rc-lbl">${item.label}</span>
                     <span class="c4-rc-badge c4-rc-mal" id="c4-rc-badge-${i}">🔴 No tiene</span>
                 </div>
-                ${item.sublabel ? `<div style="font-size:.76rem;color:#94a3b8;padding:2px 0 6px">${item.sublabel}</div>` : ''}
+                ${item.sublabel ? `<div style="font-size:1.2rem;color:#94a3b8;padding:2px 0 6px">${item.sublabel}</div>` : ''}
                 <div class="c4-rc-cols">
                     <div class="c4-cob-item">
                         <div class="c4-cob-lbl">Cobertura recomendada</div>
@@ -4484,26 +4484,26 @@ function c4UpdateAutos(met, gastosMes, resp, clientData) {
         const actNoProt    = met.activosConEstructura.filter(a => !_PROT_REAL.includes(a.leg));
 
         if (actProteg.length === 0 && actNoProt.length === 0) {
-            estructEl.innerHTML = '<span style="color:#64748b;font-size:.8rem">Todos los activos en Propiedad Directa → 0 pts</span>';
+            estructEl.innerHTML = '<span style="color:#8892a4;font-size:1.2rem">Todos los activos en Propiedad Directa → 0 pts</span>';
         } else {
             let html = '';
             if (actProteg.length > 0) {
-                html += '<div style="font-size:.72rem;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Con estructura de protección</div>';
+                html += '<div style="font-size:1.2rem;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Con estructura de protección</div>';
                 html += actProteg.map(a => `<div class="c4-estruc-item">
                     <span class="c4-estruc-name">${a.name}</span>
                     <span class="c4-estruc-leg" style="color:#34d399">${a.leg} ✅</span>
                 </div>`).join('');
             }
             if (actNoProt.length > 0) {
-                html += '<div style="font-size:.72rem;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:.04em;margin:6px 0 4px 0">Sin estructura de protección</div>';
+                html += '<div style="font-size:1.2rem;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:.04em;margin:6px 0 4px 0">Sin estructura de protección</div>';
                 html += actNoProt.map(a => `<div class="c4-estruc-item">
                     <span class="c4-estruc-name">${a.name}</span>
-                    <span class="c4-estruc-leg" style="color:#64748b">${a.leg}${_NO_PROT.includes(a.leg) ? ' — no cuenta como protección ❌' : ' ❌'}</span>
+                    <span class="c4-estruc-leg" style="color:#8892a4">${a.leg}${_NO_PROT.includes(a.leg) ? ' — no cuenta como protección ❌' : ' ❌'}</span>
                 </div>`).join('');
             }
             html += `<div class="c4-estruc-pct">
                 <span>🛡️ ${met.pctProtegido.toFixed(1)}% bajo estructura de protección</span>
-                <span style="color:#64748b">${(100-met.pctProtegido).toFixed(1)}% en propiedad directa o sin protección</span>
+                <span style="color:#8892a4">${(100-met.pctProtegido).toFixed(1)}% en propiedad directa o sin protección</span>
             </div>`;
             estructEl.innerHTML = html;
         }
@@ -4522,7 +4522,7 @@ function c4UpdateAutos(met, gastosMes, resp, clientData) {
                 `<div class="c4-ctx-row c6-sub-row"><span>&nbsp;&nbsp;• ${a.name} (${a.leg})</span><strong style="color:#34d399">${c4cop(a.neto)}</strong></div>`
               ).join('') +
               `<div class="c4-ctx-row c6-sub-row"><span>&nbsp;&nbsp;% del patrimonio protegido</span><strong style="color:#34d399">${pctProt}%</strong></div>`
-            : `<div class="c4-ctx-row c6-sub-row"><span>&nbsp;&nbsp;— Ninguna detectada</span><strong style="color:#64748b">—</strong></div>`;
+            : `<div class="c4-ctx-row c6-sub-row"><span>&nbsp;&nbsp;— Ninguna detectada</span><strong style="color:#8892a4">—</strong></div>`;
         sucEl.innerHTML =
             `<div class="c4-ctx-row"><span>Patrimonio total</span><strong>${c4cop(met.patriCOP)}</strong></div>` +
             `<div class="c4-ctx-row"><span>Países con activos</span><strong>${met.paises.size || 0}</strong></div>` +
@@ -4916,7 +4916,7 @@ function c2BuildHTML(rl, met, gastosMes, clientData) {
                 </div>
                 <div class="c4-ctx-row" style="border-top:1px solid rgba(255,255,255,.05);padding-top:4px;margin-top:2px">
                     <span style="font-weight:700;color:#e2e8f0">Déficit mensual neto</span>
-                    <strong id="c2-ctx-deficit" style="font-size:.9rem">Calculando…</strong>
+                    <strong id="c2-ctx-deficit" style="font-size:1.3rem">Calculando…</strong>
                 </div>
                 <div class="c4-ctx-sub" style="border-top:1px solid rgba(255,255,255,.05);padding-top:6px;margin-top:2px"></div>
                 <div class="c4-ctx-row">
@@ -4984,7 +4984,7 @@ function c2BuildHTML(rl, met, gastosMes, clientData) {
                 </div>
                 <div class="c4-ctx-row" style="border-top:1px solid rgba(255,255,255,.07);padding-top:4px;margin-top:2px">
                     <span style="font-weight:700;color:#e2e8f0">Excedente para oportunidades</span>
-                    <strong id="c2-c2-excedente" style="font-size:.9rem">—</strong>
+                    <strong id="c2-c2-excedente" style="font-size:1.3rem">—</strong>
                 </div>
                 <div class="c4-ctx-row">
                     <span>Equivale a</span>
@@ -5020,7 +5020,7 @@ function c2BuildHTML(rl, met, gastosMes, clientData) {
                     <strong id="c2-c3-meses">—</strong>
                 </div>
                 <div class="c4-ctx-row">
-                    <span id="c2-c3-plazo" style="color:#64748b;font-size:.73rem">—</span>
+                    <span id="c2-c3-plazo" style="color:#8892a4;font-size:1.2rem">—</span>
                 </div>
             </div>
         </div>
@@ -5037,7 +5037,7 @@ function c2BuildHTML(rl, met, gastosMes, clientData) {
             <div class="c4-auto-ctx">
                 <div class="c4-ctx-row">
                     <span>% liquidez sobre patrimonio total</span>
-                    <strong id="c2-c4-pct" style="font-size:1rem">—</strong>
+                    <strong id="c2-c4-pct" style="font-size:1.3rem">—</strong>
                 </div>
                 <div class="c4-ctx-row">
                     <span id="c2-c4-label">—</span>
@@ -5752,18 +5752,18 @@ function c3BuildHTML(rc, met, gastosMes, clientData) {
                 </div>`;
             };
             return `<div class="c3-neg-bloque">
-                <div class="c3-neg-titulo">${e.name} <span style="color:#64748b;font-size:.8rem">${cop(e.neto)}</span></div>
+                <div class="c3-neg-titulo">${e.name} <span style="color:#8892a4;font-size:1.2rem">${cop(e.neto)}</span></div>
                 ${dim('modelo',
-                    '1. Modelo de ingresos <span class="c4-tag-pts">peso 40%</span><br><small style="color:#64748b;font-weight:400">¿Cómo genera ingresos el negocio principalmente?<br>Alto = Recurrentes automáticos · Medio = Por contratos repetibles · Bajo = Por tiempo/presencia del dueño</small>',
+                    '1. Modelo de ingresos <span class="c4-tag-pts">peso 40%</span><br><small style="color:#8892a4;font-weight:400">¿Cómo genera ingresos el negocio principalmente?<br>Alto = Recurrentes automáticos · Medio = Por contratos repetibles · Bajo = Por tiempo/presencia del dueño</small>',
                     null)}
                 ${dim('estructura',
-                    '2. Estructura operativa <span class="c4-tag-pts">peso 30%</span><br><small style="color:#64748b;font-weight:400">¿El negocio funciona si el dueño no está?<br>Alto = Tiene gerencia y procesos independientes · Medio = Funciona parcialmente · Bajo = El dueño es el negocio</small>',
+                    '2. Estructura operativa <span class="c4-tag-pts">peso 30%</span><br><small style="color:#8892a4;font-weight:400">¿El negocio funciona si el dueño no está?<br>Alto = Tiene gerencia y procesos independientes · Medio = Funciona parcialmente · Bajo = El dueño es el negocio</small>',
                     null)}
                 ${dim('potencial',
-                    '3. Potencial de crecimiento <span class="c4-tag-pts">peso 20%</span><br><small style="color:#64748b;font-weight:400">¿Puede crecer sin aumentar costos proporcionalmente?<br>Alto = Modelo de alto margen escalable · Medio = Parcialmente · Bajo = Crece linealmente con los costos</small>',
+                    '3. Potencial de crecimiento <span class="c4-tag-pts">peso 20%</span><br><small style="color:#8892a4;font-weight:400">¿Puede crecer sin aumentar costos proporcionalmente?<br>Alto = Modelo de alto margen escalable · Medio = Parcialmente · Bajo = Crece linealmente con los costos</small>',
                     null)}
                 ${dim('diversificacion',
-                    '4. Diversificación de clientes <span class="c4-tag-pts">peso 10%</span><br><small style="color:#64748b;font-weight:400">¿Qué tan concentrada está la facturación?<br>Alto = Ningún cliente >20% · Medio = Un cliente 20-40% · Bajo = Un cliente >40%</small>',
+                    '4. Diversificación de clientes <span class="c4-tag-pts">peso 10%</span><br><small style="color:#8892a4;font-weight:400">¿Qué tan concentrada está la facturación?<br>Alto = Ningún cliente >20% · Medio = Un cliente 20-40% · Bajo = Un cliente >40%</small>',
                     null)}
             </div>`;
         }).join('');
@@ -5782,7 +5782,7 @@ function c3BuildHTML(rc, met, gastosMes, clientData) {
                 <input type="number" id="c3-retorno-estimado" class="c4-cob-input"
                     step="0.1" min="-50" max="100" placeholder="Ej: 8.5"
                     value="${retornoEstimado !== '' ? retornoEstimado : ''}">
-                <span style="color:#94a3b8;font-size:.8rem">% EA</span>
+                <span style="color:#94a3b8;font-size:1.2rem">% EA</span>
             </div>
           </div>` : '';
 
@@ -5838,7 +5838,7 @@ function c3BuildHTML(rc, met, gastosMes, clientData) {
             <div class="c3-assets-list">${listaInv}</div>
 
             <div class="c4-auto-ctx" style="margin-top:8px">
-                <div class="c4-ctx-row" style="font-size:.8rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.04em">
+                <div class="c4-ctx-row" style="font-size:1.2rem;color:#8892a4;font-weight:600;text-transform:uppercase;letter-spacing:.04em">
                     <span>Tamaño del portafolio</span>
                     <span class="c4-tag-pts">≥30%: 1 / 15-29%: 0.5 / &lt;15%: 0</span>
                 </div>
@@ -5847,7 +5847,7 @@ function c3BuildHTML(rc, met, gastosMes, clientData) {
                     ${pctPort >= 30 ? badge('✅ Sólido ≥30%', true) : pctPort >= 15 ? badge('⚠️ Básico 15-29%', null) : badge('🔴 Insuficiente <15%', false)}
                 </div>
 
-                <div class="c4-ctx-row" style="font-size:.8rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:8px">
+                <div class="c4-ctx-row" style="font-size:1.2rem;color:#8892a4;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:8px">
                     <span>Diversificación</span>
                     <span class="c4-tag-pts">≥3 tipos y ≥2 países: 1 / parcial: 0.5 / concentrado: 0</span>
                 </div>
@@ -5857,7 +5857,7 @@ function c3BuildHTML(rc, met, gastosMes, clientData) {
                     ${tiposInv >= 3 && paisesInv >= 2 ? badge('✅ Diversificado', true) : tiposInv >= 2 || paisesInv >= 2 ? badge('⚠️ Parcialmente diversificado', null) : badge('🔴 Concentrado', false)}
                 </div>
 
-                <div class="c4-ctx-row" style="font-size:.8rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:8px">
+                <div class="c4-ctx-row" style="font-size:1.2rem;color:#8892a4;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:8px">
                     <span>Alineación con perfil ${perfil || '—'}</span>
                     <span class="c4-tag-pts">Alineado: 1 / Desalineado: 0</span>
                 </div>
@@ -5885,7 +5885,7 @@ function c3BuildHTML(rc, met, gastosMes, clientData) {
                 <div class="c4-ctx-row">
                     ${pctIntl >= 20 ? badge('✅ ≥20%', true) : pctIntl >= 10 ? badge('⚠️ 10-19%', null) : badge('🔴 <10%', false)}
                 </div>
-                ${listaPaises ? `<div class="c4-ctx-row" style="font-size:.8rem;color:#64748b;margin-top:6px"><span>Distribución por país</span></div>${listaPaises}` : ''}
+                ${listaPaises ? `<div class="c4-ctx-row" style="font-size:1.2rem;color:#8892a4;margin-top:6px"><span>Distribución por país</span></div>${listaPaises}` : ''}
                 ${alertaUSD}
                 ${alertaSinIntl}
             </div>
@@ -5970,13 +5970,13 @@ function c3BuildHTML(rc, met, gastosMes, clientData) {
                     + '<div class="c4-ctx-row"><span></span>'
                     + '<strong class="' + (capSuficiente ? 'obj-via-ok' : 'obj-via-warn') + '">'
                     + (capSuficiente ? '✅ Suficiente' : '⚠️ Gap de ' + fmtCOP(gapCap) + '/mes') + '</strong></div>'
-                    + '<div style="font-size:.73rem;color:#475569;margin-top:6px;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Distribución por plazo (más cercano primero)</div>'
+                    + '<div style="font-size:1.2rem;color:#8892a4;margin-top:6px;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Distribución por plazo (más cercano primero)</div>'
                     + c6Data.todos.map((o, i) => {
                         const capAgotadaTxt = o.capAgotada ? ' — cubierto por patrimonio' : '';
-                        return '<div class="c4-ctx-row" style="font-size:.76rem;">'
+                        return '<div class="c4-ctx-row" style="font-size:1.2rem;">'
                             + '<span>Objetivo ' + (i+1) + ' (' + o.meses + ' meses)</span>'
                             + '<strong>' + fmtCOP(o.ahorroAsignado) + '/mes'
-                            + (capAgotadaTxt ? ' <span style="color:#64748b">' + capAgotadaTxt + '</span>' : '') + '</strong></div>';
+                            + (capAgotadaTxt ? ' <span style="color:#8892a4">' + capAgotadaTxt + '</span>' : '') + '</strong></div>';
                     }).join('')
                     + '</div>';
 
@@ -5999,7 +5999,7 @@ function c3BuildHTML(rc, met, gastosMes, clientData) {
 
                     return '<div class="c3-inmu-row" style="margin-bottom:6px;">'
                         + '<div class="c3-inmu-nombre">' + nombre
-                        + ' <span style="color:#64748b;font-size:.75rem">'
+                        + ' <span style="color:#8892a4;font-size:1.2rem">'
                         + (o.prioridad ? o.prioridad + '  •  ' : '') + 'plazo: ' + o.meses + ' meses</span></div>'
                         + '<div class="c3-inmu-detalle" style="flex-direction:column;gap:3px;">'
                         + '<span>Costo: ' + fmtCOP(o.costoEstimado) + '</span>'
@@ -6027,7 +6027,7 @@ function c3BuildHTML(rc, met, gastosMes, clientData) {
                     const pctSinSeg  = nmSeg > 0 ? Math.min((patriTotal2 / nmSeg) * 100, 999).toFixed(1) : '—';
                     const pctConSeg  = nmSeg > 0 ? Math.min(((patriTotal2 + c6Data.aporteSegurosPension) / nmSeg) * 100, 999).toFixed(1) : '—';
                     segurosPensionHtml = '<div style="margin-top:8px;padding:8px 10px;background:rgba(52,211,153,.07);border-radius:8px;border:1px solid rgba(52,211,153,.2);">'
-                        + '<div style="font-size:.75rem;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Seguros de pensión alineados con la meta</div>'
+                        + '<div style="font-size:1.2rem;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Seguros de pensión alineados con la meta</div>'
                         + c6Data.segurosPensionAlineados.map(s => {
                             const anioV = s.fechaVencimiento ? s.fechaVencimiento.split('-')[0] : '—';
                             return '<div class="c4-ctx-row"><span>' + (s.name || 'Seguro') + ' — vence ' + anioV + '</span>'
@@ -6231,7 +6231,7 @@ function _objBuildCard(plazo, idx, datos, clientData, activos) {
         <div id="obj-pif-wrap-${uid}" style="${mostrarPIF}" class="obj-pif-opt">
             <label>% de gastos cubiertos por ingresos pasivos:</label>
             <input type="number" id="obj_pif_${uid}" min="1" max="99"
-                placeholder="50" value="${pifPct}"> <span style="color:#94a3b8;font-size:.8rem">%</span>
+                placeholder="50" value="${pifPct}"> <span style="color:#94a3b8;font-size:1.2rem">%</span>
         </div>
         <div class="obj-row3">
             <div class="obj-field">
@@ -6397,7 +6397,7 @@ function _objRenderLargo(fechaGuardada) {
             </div>
         </div>
 
-        <div style="font-size:.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:8px 0 4px;">
+        <div style="font-size:1.2rem;font-weight:700;color:#8892a4;text-transform:uppercase;letter-spacing:.05em;margin:8px 0 4px;">
             Hitos intermedios
         </div>
         <div class="obj-hito">
@@ -6415,7 +6415,7 @@ function _objRenderLargo(fechaGuardada) {
             </div>
         </div>
 
-        <div style="font-size:.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 6px;">
+        <div style="font-size:1.2rem;font-weight:700;color:#8892a4;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 6px;">
             Avance actual
         </div>
         <div class="obj-progress-wrap">
@@ -6427,7 +6427,7 @@ function _objRenderLargo(fechaGuardada) {
                 <div class="obj-progress-track">
                     <div class="obj-progress-fill" style="width:${Math.min(pctPatri,100)}%"></div>
                 </div>
-                <div style="font-size:.7rem;color:#475569;margin-top:2px">
+                <div style="font-size:1.2rem;color:#8892a4;margin-top:2px">
                     ${_objFmtCOP(portafolioProductivoTotal)} de ${_objFmtCOP(numeroMagico)} (portafolio productivo)
                 </div>
             </div>
@@ -6439,12 +6439,12 @@ function _objRenderLargo(fechaGuardada) {
                 <div class="obj-progress-track">
                     <div class="obj-progress-fill" style="width:${Math.min(pctIngPas,100)}%"></div>
                 </div>
-                <div style="font-size:.7rem;color:#475569;margin-top:2px">
+                <div style="font-size:1.2rem;color:#8892a4;margin-top:2px">
                     ${_objFmtCOP(ingPasivoTotal)}/mes de ${_objFmtCOP(gastos)}/mes
                 </div>
             </div>
         </div>
-        ` : `<div style="font-size:.77rem;color:#475569;">Ingresa los gastos mensuales del cliente para ver los hitos y el avance.</div>`}
+        ` : `<div style="font-size:1.2rem;color:#8892a4;">Ingresa los gastos mensuales del cliente para ver los hitos y el avance.</div>`}
     `;
 }
 
@@ -6842,7 +6842,7 @@ function c4dBuildHTML(activos, gastosMes, clientData) {
         + '</div>'
         + '</div>'
         + '<div class="c4-body">'
-        + '<div class="c4-auto-ctx" style="margin-bottom:8px;font-size:.78rem;color:#64748b">'
+        + '<div class="c4-auto-ctx" style="margin-bottom:8px;font-size:1.2rem;color:#8892a4">'
         + 'Evalúa si el patrimonio está distribuido de forma que ningún evento, mercado, moneda, geografía o sector pueda destruirlo. '
         + 'Un patrimonio bien diversificado reduce el riesgo estructural sin sacrificar rentabilidad. '
         + 'Todos los criterios son automáticos desde el mapa de activos.'
@@ -6866,6 +6866,7 @@ function c4dBuildHTML(activos, gastosMes, clientData) {
 
 let dbChartGeo    = null;
 let dbChartSector = null;
+let dbChartIngresosDep = null;
 
 // ── Helper: fila de barra de concentración para bloques no-chart ─────
 function _dbConcRow(label, neto, pct, cls) {
@@ -6966,15 +6967,15 @@ function renderBloque7_Geo(activos, clientData) {
     const labels = hasData ? d.paisEntries.map(([p]) => p) : ['Sin datos'];
     const vals   = hasData ? d.paisEntries.map(([,v]) => d.patriTotal > 0 ? v/d.patriTotal*100 : 0) : [100];
     const PAIS_COLORS = ['#4a90d9','#34d399','#f0c040','#a78bfa','#f87171','#fb923c','#38bdf8'];
-    const colors = hasData ? d.paisEntries.map((_,i) => PAIS_COLORS[i % PAIS_COLORS.length]) : ['#2d3748'];
+    const colors = hasData ? d.paisEntries.map((_,i) => PAIS_COLORS[i % PAIS_COLORS.length]) : ['#edf0f4'];
 
     dbChartGeo = new Chart(ctx, {
         type: 'doughnut',
         data: { labels, datasets: [{ data: vals, backgroundColor: colors, borderWidth: 0 }] },
         options: { responsive: true, maintainAspectRatio: false, cutout: '70%',
             plugins: { legend: { display: false }, tooltip: {
-                backgroundColor:'#1a1e2e',titleColor:'#f0f2ff',bodyColor:'#8b90a0',
-                borderColor:'#1e2235',borderWidth:1,
+                backgroundColor:'#ffffff',titleColor:'#1e2a3a',bodyColor:'#5e6b7f',
+                borderColor:'#e8ecf1',borderWidth:1,
                 callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed.toFixed(1)}%` }
             }}}
     });
@@ -6989,7 +6990,7 @@ function renderBloque7_Geo(activos, clientData) {
                     <span>${pais}</span>
                     <span class="db-legend-pct">${pct.toFixed(1)}%</span>
                 </div>`;
-            }).join('') + `<div style="font-size:.72rem;color:#475569;margin-top:6px">Países distintos: ${d.numPaises}</div>`
+            }).join('') + `<div style="font-size:1.2rem;color:#8c95a6;margin-top:6px">Países distintos: ${d.numPaises}</div>`
             : '<p class="db-legend-empty">Sin activos registrados</p>';
     }
 
@@ -7025,7 +7026,7 @@ function renderBloque8_Negocio(d) {
     const lista = document.getElementById('db-negocio-lista');
     if (lista) {
         if (d.actEmp.length === 0) {
-            lista.innerHTML = '<p class="db-legend-empty" style="color:#34d399">✅ Sin activos empresariales</p>';
+            lista.innerHTML = '<p class="db-legend-empty" style="color:#0d7a4f">✅ Sin activos empresariales</p>';
         } else {
             lista.innerHTML = d.actEmp.map(e => {
                 const cls = e.pct > 60 ? 'bad' : e.pct > 40 ? 'warn' : '';
@@ -7050,21 +7051,65 @@ function renderBloque8_Negocio(d) {
     }
 }
 
-// ── Bloque 9: Dependencia Ingresos Activos ───────────────────────────
+// ── Bloque 9: Dependencia Ingresos Activos (donut) ──────────────────
 function renderBloque9_IngresosDep(d) {
-    const body = document.getElementById('db-ingresos-dep-body');
-    if (body) {
-        if (d.totalIng === 0) {
-            body.innerHTML = '<p class="db-legend-empty">Sin datos de ingresos</p>';
+    if (dbChartIngresosDep) { dbChartIngresosDep.destroy(); dbChartIngresosDep = null; }
+
+    const ctx = document.getElementById('db-chart-ingresos-dep');
+    const legend = document.getElementById('db-legend-ingresos-dep');
+    if (!ctx) return;
+
+    const hasData = d.totalIng > 0;
+    const pctA = hasData ? d.pctDepAct : 0;
+    const pctP = hasData ? 100 - pctA : 0;
+
+    const labels = hasData ? ['Ingresos activos', 'Ingresos pasivos'] : ['Sin datos'];
+    const data   = hasData ? [pctA, pctP] : [100];
+    const colors = hasData ? ['#e8a735', '#3dd68c'] : ['#252b3a'];
+
+    dbChartIngresosDep = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1c2130',
+                    titleColor: '#e8eaed',
+                    bodyColor: '#8892a4',
+                    borderColor: 'rgba(255,255,255,0.08)',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: ctx => ` ${ctx.label}: ${ctx.parsed.toFixed(1)}%`
+                    }
+                }
+            }
+        }
+    });
+
+    // Leyenda
+    if (legend) {
+        if (!hasData) {
+            legend.innerHTML = '<p class="db-legend-empty">Sin datos de ingresos</p>';
         } else {
-            const pctA = d.pctDepAct;
-            const pctP = 100 - pctA;
-            const clsA = pctA > 90 ? 'bad' : pctA > 70 ? 'warn' : '';
-            body.innerHTML =
-                _dbConcRow('Ingresos activos', d.ingActivo, pctA, clsA)
-                + _dbConcRow('Ingresos pasivos', d.ingPasivo, pctP, '');
+            const items = [
+                { label: 'Ingresos activos', value: d.ingActivo, pct: pctA, color: colors[0] },
+                { label: 'Ingresos pasivos', value: d.ingPasivo, pct: pctP, color: colors[1] }
+            ];
+            legend.innerHTML = items.map(it => `
+                <div class="db-legend-item">
+                    <span class="db-legend-dot" style="background:${it.color}"></span>
+                    <span>${it.label}</span>
+                    <span class="db-legend-pct">${it.pct.toFixed(1)}%</span>
+                </div>
+                <div style="font-size:1.2rem;color:#8892a4;margin-left:18px;margin-top:-4px;">${fmtCOP(it.value)}/mes</div>
+            `).join('');
         }
     }
+
+    // Semáforo y alertas (lógica sin cambios)
     const esDanger  = d.pctDepAct > 90;
     const esWarning = !esDanger && d.pctDepAct > 70;
     const esOk      = d.pctDepAct <= 50;
@@ -7095,7 +7140,7 @@ function renderBloque10_Sector(d) {
 
     let html = '';
     if (d.actConSec.length === 0) {
-        html = '<p class="db-legend-empty" style="color:#34d399">✅ Sin concentración sectorial — activos globalmente diversificados</p>';
+        html = '<p class="db-legend-empty" style="color:#0d7a4f">✅ Sin concentración sectorial — activos globalmente diversificados</p>';
         setCardSemaphore('db-bloque-sector', 'card-success');
     } else {
         const ctx = document.createElement('canvas');
@@ -7119,8 +7164,8 @@ function renderBloque10_Sector(d) {
             data: { labels: slabels, datasets: [{ data: svals, backgroundColor: scolors, borderWidth: 0 }] },
             options: { responsive: true, maintainAspectRatio: false, cutout: '70%',
                 plugins: { legend: { display: false }, tooltip: {
-                    backgroundColor:'#1a1e2e',titleColor:'#f0f2ff',bodyColor:'#8b90a0',
-                    borderColor:'#1e2235',borderWidth:1,
+                    backgroundColor:'#ffffff',titleColor:'#1e2a3a',bodyColor:'#5e6b7f',
+                    borderColor:'#e8ecf1',borderWidth:1,
                     callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed.toFixed(1)}%` }
                 }}}
         });
@@ -7150,7 +7195,7 @@ function renderBloque10_Sector(d) {
 
         if (d.actGlobalDiv.length > 0) {
             const nota = document.createElement('div');
-            nota.style.cssText = 'font-size:.72rem;color:#475569;margin-top:6px;font-style:italic';
+            nota.style.cssText = 'font-size:1.2rem;color:#8c95a6;margin-top:6px;font-style:italic';
             nota.textContent = 'Activos globalmente diversificados no incluidos: '
                 + d.actGlobalDiv.map(a => a.description || a.subtype || 'Activo').join(', ');
             body.appendChild(nota);
@@ -7160,7 +7205,7 @@ function renderBloque10_Sector(d) {
 
     body.innerHTML = html;
     if (d.actGlobalDiv.length > 0) {
-        body.innerHTML += `<div style="font-size:.72rem;color:#475569;margin-top:6px;font-style:italic">Activos globalmente diversificados: ${d.actGlobalDiv.map(a=>a.description||a.subtype||'Activo').join(', ')}</div>`;
+        body.innerHTML += `<div style="font-size:1.2rem;color:#8c95a6;margin-top:6px;font-style:italic">Activos globalmente diversificados: ${d.actGlobalDiv.map(a=>a.description||a.subtype||'Activo').join(', ')}</div>`;
     }
     const alertEl = document.getElementById('db-alert-sector');
     if (alertEl) alertEl.style.display = 'none';
@@ -7200,7 +7245,7 @@ function renderResumenConcentraciones(d) {
         : alertas.some(a=>a.cls==='warn') ? 'card-warning' : 'card-success');
 
     if (alertas.length === 0) {
-        body.innerHTML = '<div style="color:#34d399;font-weight:600">✅ Patrimonio bien diversificado en todas las dimensiones</div>';
+        body.innerHTML = '<div style="color:#0d7a4f;font-weight:600">✅ Patrimonio bien diversificado en todas las dimensiones</div>';
     } else {
         body.innerHTML = alertas.map(a =>
             `<div class="db-resumen-item">`
