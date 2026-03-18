@@ -633,7 +633,7 @@ body {
     right: -4px;
     background: var(--danger);
     color: white;
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 700;
     padding: 0.125rem 0.375rem;
     border-radius: 10px;
@@ -811,7 +811,7 @@ body {
     display: inline-block;
     padding: 0.25rem 0.75rem;
     border-radius: 10px;
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -1318,7 +1318,7 @@ body {
 .form-group small {
     display: block;
     margin-top: 0.25rem;
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: var(--gray-600);
     font-style: italic;
 }
@@ -2075,7 +2075,7 @@ body {
 
 /* Texto de ayuda — legible sobre fondo blanco */
 #rol-empresarial-group .rol-emp-hint {
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: #666666;
     line-height: 1.35;
 }
@@ -2174,7 +2174,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -2222,7 +2222,7 @@ body {
 }
 #dashboard-section .db-breakdown-item { display: flex; flex-direction: column; gap: 2px; }
 #dashboard-section .db-breakdown-label {
-    font-size: 1.2rem;
+    font-size: 1rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--db-text-muted);
@@ -2234,7 +2234,7 @@ body {
 
 /* TRM footer */
 #dashboard-section #trm-pie-dashboard {
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: var(--db-text-muted);
     font-style: italic;
     padding-top: 4px;
@@ -2249,7 +2249,7 @@ body {
     border-radius: 10px;
 }
 #dashboard-section .db-if-numero-label {
-    font-size: 1.2rem;
+    font-size: 1rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--db-text-muted);
@@ -2260,7 +2260,7 @@ body {
     color: var(--db-text-primary);
 }
 #dashboard-section .db-if-numero-sub {
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: var(--db-text-muted);
     font-style: italic;
 }
@@ -2277,7 +2277,7 @@ body {
 #dashboard-section #db-if-detalle {
     display: block;
     margin-top: 8px;
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: var(--db-text-secondary);
 }
 #dashboard-section .db-if-row {
@@ -2298,7 +2298,7 @@ body {
     opacity: 0.7;
 }
 #dashboard-section .db-if-sub {
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: var(--db-text-muted);
     font-style: italic;
     padding: 2px 0 4px;
@@ -2337,7 +2337,7 @@ body {
 }
 #dashboard-section .db-semaforo-pct,
 #dashboard-section .db-semaforo-label {
-    font-size: 1.2rem; font-weight: 600; color: var(--db-text-secondary);
+    font-size: 1rem; font-weight: 600; color: var(--db-text-secondary);
 }
 #dashboard-section .db-semaforo--verde  .db-semaforo-pct,
 #dashboard-section .db-semaforo--verde  .db-semaforo-label  { color: var(--db-success); }
@@ -2365,7 +2365,7 @@ body {
 #dashboard-section .db-fill--yellow { background: var(--db-warning); }
 #dashboard-section .db-fill--red    { background: var(--db-danger); }
 #dashboard-section .db-progress-caption {
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: var(--db-text-muted);
     font-style: italic;
 }
@@ -2398,19 +2398,19 @@ body {
     align-items: center; text-align: center;
 }
 #dashboard-section .db-meta-year {
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: var(--db-text-muted);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: .08em;
 }
 #dashboard-section .db-meta-target {
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--db-text-primary);
 }
 #dashboard-section .db-meta-pct {
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: var(--db-text-secondary);
 }
 
@@ -2421,7 +2421,7 @@ body {
     background: rgba(255,255,255,0.03);
     border: 1px solid var(--db-border);
     border-radius: 8px;
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 #dashboard-section .db-gap-row svg { stroke: var(--db-text-muted); }
 #dashboard-section .db-gap-label { color: var(--db-text-secondary); flex: 1; }
@@ -2430,7 +2430,7 @@ body {
 
 #dashboard-section .db-liquidez-detalle {
     display: flex; justify-content: space-between;
-    font-size: 1.2rem; color: var(--db-text-muted);
+    font-size: 1rem; color: var(--db-text-muted);
     padding-top: 4px;
 }
 #dashboard-section .db-detail-val { color: var(--db-text-secondary); font-weight: 600; }
@@ -2442,13 +2442,13 @@ body {
 #dashboard-section .db-chart-legend { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
 #dashboard-section .db-legend-item {
     display: flex; align-items: center; gap: 10px;
-    font-size: 1.2rem; color: var(--db-text-secondary);
+    font-size: 1rem; color: var(--db-text-secondary);
 }
 #dashboard-section .db-legend-dot {
     width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0;
 }
 #dashboard-section .db-legend-pct { margin-left: auto; font-weight: 700; color: var(--db-text-primary); }
-#dashboard-section .db-legend-empty { font-size: 1.2rem; color: var(--db-text-muted); }
+#dashboard-section .db-legend-empty { font-size: 1rem; color: var(--db-text-muted); }
 
 /* ── Alertas (bloques 4 y 5) ───────────────────────────────────────────── */
 #dashboard-section .db-alert {
@@ -2457,7 +2457,7 @@ body {
     border: 1px solid rgba(255,77,109,0.25);
     border-radius: 8px;
     padding: 10px 14px;
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: rgba(255,77,109,0.85);
 }
 #dashboard-section .db-alert svg { flex-shrink: 0; margin-top: 1px; stroke: var(--db-danger); }
@@ -2479,7 +2479,7 @@ body {
 /* ── Dashboard: bloques de barra concentración (B7-B10) ──────────────────── */
 #dashboard-section .db-conc-row {
     display: flex; align-items: center; gap: 8px;
-    font-size: 1.2rem; color: var(--db-text-secondary);
+    font-size: 1rem; color: var(--db-text-secondary);
 }
 #dashboard-section .db-conc-lbl { min-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #dashboard-section .db-conc-track {
@@ -2493,14 +2493,14 @@ body {
 }
 #dashboard-section .db-conc-fill--warn { background: linear-gradient(90deg, #f0c040, #fb923c); }
 #dashboard-section .db-conc-fill--bad  { background: linear-gradient(90deg, #f87171, #ff4d6d); }
-#dashboard-section .db-conc-pct { min-width: 36px; text-align: right; font-weight: 700; color: var(--db-text-primary); font-size: 1.2rem; }
-#dashboard-section .db-conc-cop { min-width: 100px; text-align: right; color: var(--db-text-muted); font-size: 1.2rem; }
+#dashboard-section .db-conc-pct { min-width: 36px; text-align: right; font-weight: 700; color: var(--db-text-primary); font-size: 1rem; }
+#dashboard-section .db-conc-cop { min-width: 100px; text-align: right; color: var(--db-text-muted); font-size: 1rem; }
 
 /* Resumen de concentraciones */
 #dashboard-section .db-resumen-item { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--db-border); }
 #dashboard-section .db-resumen-item:last-child { border-bottom: none; }
-#dashboard-section .db-resumen-dim { font-weight: 600; color: var(--db-text-secondary); min-width: 130px; font-size: 1.2rem; }
-#dashboard-section .db-resumen-msg { color: var(--db-text-primary); font-size: 1.2rem; }
+#dashboard-section .db-resumen-dim { font-weight: 600; color: var(--db-text-secondary); min-width: 130px; font-size: 1rem; }
+#dashboard-section .db-resumen-msg { color: var(--db-text-primary); font-size: 1rem; }
 
 @media (max-width: 767px) {
     #dashboard-section .db-conc-cop { display: none; }
