@@ -421,6 +421,22 @@
         ═══════════════════════════════════════════════════════ */
         #capas-section { padding: 24px; flex-direction: column; gap: 24px; }
         #capas-section.active { display: flex; }
+        #vulnerabilidades-section { width:100%; max-width:100%; padding:0; flex-direction:column; gap:0; }
+        #vulnerabilidades-section.active { display: flex; }
+        #vuln-container { width:100%; max-width:100%; padding:24px; box-sizing:border-box; }
+        #vuln-container > div { width:100%; box-sizing:border-box; }
+        #arquitectura-section { width:100%; max-width:100%; padding:0; flex-direction:column; gap:0; }
+        #arquitectura-section.active { display: flex; }
+        #arq-container { width:100%; max-width:100%; padding:24px; box-sizing:border-box; }
+        #arq-container > div { width:100%; box-sizing:border-box; }
+        @media (max-width: 768px) {
+            .vuln-resumen { flex-direction: column; }
+            .vuln-card { padding: 14px 14px !important; }
+            .arq-asig-row { grid-template-columns: 1fr !important; }
+            .arq-asig-header { display: none !important; }
+            .arq-proy-row { grid-template-columns: 1fr !important; }
+            .arq-proy-header { display: none !important; }
+        }
 
         /* Tarjeta score global ─────────────────────────────── */
         .c4-global {
@@ -667,8 +683,7 @@
         .c4-rc-ok     { background: rgba(52,211,153,.15); color: #34d399; }
         .c4-rc-warn   { background: rgba(234,179,8,.15);  color: #eab308; }
         .c4-rc-mal    { background: rgba(239,68,68,.15);  color: #ef4444; }
-        .c4-rc-cols   { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
+        .c4-rc-cols   { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         /* Estructuras detectadas ─────────────────────────── */
         .c4-estruc-item {
             display: grid; grid-template-columns: 1fr auto auto;
@@ -931,7 +946,7 @@
         .obj-field input, .obj-field select {
             font-size: 1rem; padding: 5px 8px; border-radius: 6px;
             border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05);
-            color: #e2e8f0; width: 100%;
+            width: 100%;
         }
         .obj-pri-opts { display: flex; gap: 6px; flex-wrap: wrap; }
         .obj-pri-opt {
@@ -1421,6 +1436,9 @@
                 ════════════════════════════════════════════ -->
                 <section id="dashboard-section" class="content-section">
 
+                    <!-- BLOQUE 0: Objetivos del cliente (fondo blanco) -->
+                    <div id="db-bloque-objetivos"></div>
+
                     <!-- Fila 1: Patrimonio (ancho completo) + Independencia Financiera -->
                     <div class="db-row db-row--top">
 
@@ -1593,6 +1611,19 @@
 
                     </div><!-- /row charts 1 -->
 
+                    <!-- BLOQUE · ANÁLISIS DE DEUDA -->
+                    <div class="db-row">
+                        <div class="db-card" id="db-bloque-deuda">
+                            <div class="db-card-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                Análisis de Deuda
+                            </div>
+                            <div id="db-deuda-body">
+                                <p class="db-legend-empty">Sin datos</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Fila 2: Geográfica + Negocio Único -->
                     <div class="db-row db-row--charts">
 
@@ -1689,6 +1720,33 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Exposición Legal + Score Fiscal -->
+                    <div class="db-row db-row--charts">
+                        <div class="db-card" id="db-bloque-exposicion-legal">
+                            <div class="db-card-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                Exposición Legal
+                            </div>
+                            <div id="db-exposicion-legal-body">
+                                <p class="db-legend-empty">Sin datos</p>
+                            </div>
+                            <div class="db-alert" id="db-alert-exposicion-legal" style="display:none;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                <span id="db-alert-exposicion-legal-msg"></span>
+                            </div>
+                        </div>
+                        <div class="db-card" id="db-bloque-score-fiscal">
+                            <div class="db-card-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                Score Fiscal
+                            </div>
+                            <div id="db-score-fiscal-body">
+                                <p class="db-legend-empty">Sin datos</p>
+                            </div>
+                        </div>
+                    </div>
+
 
                 </section>
 
@@ -1817,6 +1875,20 @@
                 <!-- Add other sections here as needed -->
                 <!-- Sección 4 Capas — el JS la construye dinámicamente -->
                 <section id="capas-section" class="content-section"></section>
+
+                <!-- Sección Vulnerabilidades — el JS la construye dinámicamente -->
+                <section id="vulnerabilidades-section" class="content-section">
+                    <div id="vuln-container">
+                        <p class="db-legend-empty">Selecciona un cliente para ver sus vulnerabilidades</p>
+                    </div>
+                </section>
+
+                <!-- Sección Arquitectura Ideal — el JS la construye dinámicamente -->
+                <section id="arquitectura-section" class="content-section">
+                    <div id="arq-container">
+                        <p class="db-legend-empty">Selecciona un cliente para ver su arquitectura ideal</p>
+                    </div>
+                </section>
             </div>
         </main>
     </div>
@@ -2414,6 +2486,28 @@
                             <label>Ingreso mensual COP</label>
                             <input type="number" id="asset-monthly-income" step="0.01" placeholder="0" value="0">
                             <small>Rentas, dividendos, intereses — en pesos colombianos</small>
+                        </div>
+                        <div class="form-group" id="income-reinvest-group">
+                            <label>¿Qué hace con este ingreso?</label>
+                            <div class="toggle-group">
+                                <label class="toggle-option">
+                                    <input type="radio" name="income-destination" id="income-destination-gasto" value="gasto" checked>
+                                    <span class="toggle-label">Lo uso para mis gastos</span>
+                                </label>
+                                <label class="toggle-option">
+                                    <input type="radio" name="income-destination" id="income-destination-reinvierte" value="reinvierte">
+                                    <span class="toggle-label">Lo reinvierto</span>
+                                </label>
+                                <label class="toggle-option">
+                                    <input type="radio" name="income-destination" id="income-destination-parcial" value="parcial">
+                                    <span class="toggle-label">Parte gasto, parte reinvierto</span>
+                                </label>
+                            </div>
+                            <div id="income-reinvest-pct-group" style="display:none;margin-top:8px">
+                                <label>% que reinvierte</label>
+                                <input type="number" id="income-reinvest-pct" min="1" max="99" placeholder="50" value="50">
+                                <small>El resto se usa para gastos</small>
+                            </div>
                         </div>
                     </div>
                 </div>

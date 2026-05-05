@@ -71,6 +71,7 @@ const configuracionActivosActualizada = {
         subtipos: [
             { value: 'Cuenta bancaria corriente o ahorros', label: 'Cuenta bancaria (corriente o ahorros)', liquidez: 'Alta' },
             { value: 'Cuenta de alto rendimiento', label: 'Cuenta de alto rendimiento (Pibank, Lulo Bank, Nubank)', liquidez: 'Alta' },
+            { value: 'Cuenta AFC', label: 'Cuenta AFC (Ahorro para el Fomento de la Construcción)', liquidez: 'Baja' },
             { value: 'Efectivo en caja', label: 'Efectivo en caja', liquidez: 'Alta' },
             { value: 'Fondo de liquidez o Fiducia', label: 'Fondo de liquidez o Fiducia', liquidez: 'Alta' },
             { value: 'CDT', label: 'CDT (Certificado de Depósito a Término)', liquidez: 'Baja' },
@@ -78,7 +79,7 @@ const configuracionActivosActualizada = {
             { value: 'ETF o fondo de inversión internacional', label: 'ETF o fondo de inversión internacional', liquidez: 'Media' },
             { value: 'Fondo de inversión colectiva FIC', label: 'Fondo de inversión colectiva (FIC)', liquidez: 'Media' },
             { value: 'Bonos o títulos de deuda', label: 'Bonos o títulos de deuda', liquidez: 'Media' },
-            { value: 'Skandia Multifund', label: 'Seguro con ahorro - Fondo voluntario pensiones (Skandia Multifund)', liquidez: 'Baja' },
+            { value: 'Fondo de pensiones voluntarias FPV', label: 'Fondo de pensiones voluntarias', liquidez: 'Baja' },
             { value: 'Seguro de pensión con ahorro', label: 'Seguro de pensión con ahorro', liquidez: 'Ilíquida' },
             { value: 'REIT', label: 'REIT (fondo inmobiliario cotizado)', liquidez: 'Media' },
             { value: 'Cartera gestionada por terceros', label: 'Cartera gestionada por terceros (family office, wealth manager, fiduciaria)', liquidez: 'Media' }
@@ -599,6 +600,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (inc) inc.value = '0';
                 }
             }
+        });
+    });
+
+    // Toggle parcial % field for income destination
+    document.querySelectorAll('input[name="income-destination"]').forEach(r => {
+        r.addEventListener('change', () => {
+            const esParcial = document.querySelector('input[name="income-destination"]:checked')?.value === 'parcial';
+            const grp = document.getElementById('income-reinvest-pct-group');
+            if (grp) grp.style.display = esParcial ? 'block' : 'none';
         });
     });
 });
@@ -1298,27 +1308,31 @@ navItems.forEach(item => {
         if (section === 'dashboard') loadDashboardData();
         if (section === 'patrimonio') loadAssetsTable();
         if (section === 'capas') initializeCapasSection();
+        if (section === 'vulnerabilidades') loadVulnerabilidades();
+        if (section === 'arquitectura') loadArquitecturaIdeal();
     });
 });
 
 function updateHeaderTitle(section) {
+    const nombre = (selectedClientData?.nombreCliente || selectedClientData?.name || '').trim();
+    const suf = nombre ? ' — ' + nombre : '';
     const titles = {
-        'clientes': { title: 'Mis Clientes', subtitle: 'Gestión y monitoreo de clientes' },
-        'dashboard': { title: 'Dashboard', subtitle: 'Visión general del cliente' },
-        'patrimonio': { title: 'Mapa Patrimonial', subtitle: 'Inventario completo de activos' },
-        'capas': { title: 'Evaluación 4 Capas', subtitle: 'Protección, Liquidez, Crecimiento y Diversificación' },
-        'vulnerabilidades': { title: 'Vulnerabilidades', subtitle: 'Gestión de riesgos' },
-        'arquitectura': { title: 'Arquitectura Ideal', subtitle: 'Estructura patrimonial objetivo' },
-        'implementacion': { title: 'Plan Implementación', subtitle: 'Hoja de ruta por fases' },
-        'instrumentos': { title: 'Instrumentos', subtitle: 'Recomendaciones estratégicas' },
-        'documentos': { title: 'Documentos', subtitle: 'Plan formal' }
+        'clientes':       { title: 'Mis Clientes',       subtitle: 'Gestión y monitoreo de clientes' },
+        'dashboard':      { title: 'Dashboard',           subtitle: 'Visión general' + (nombre ? ' de ' + nombre : 'del cliente') },
+        'patrimonio':     { title: 'Mapa Patrimonial' + suf,  subtitle: 'Inventario completo de activos' },
+        'capas':          { title: 'Evaluación 4 Capas' + suf, subtitle: 'Protección, Liquidez, Crecimiento y Diversificación' },
+        'vulnerabilidades':{ title: 'Vulnerabilidades' + suf, subtitle: 'Gestión de riesgos' },
+        'arquitectura':   { title: 'Arquitectura Ideal' + suf, subtitle: 'Estructura patrimonial objetivo' },
+        'implementacion': { title: 'Plan Implementación' + suf, subtitle: 'Hoja de ruta por fases' },
+        'instrumentos':   { title: 'Instrumentos' + suf,  subtitle: 'Recomendaciones estratégicas' },
+        'documentos':     { title: 'Documentos' + suf,    subtitle: 'Plan formal' }
     };
-    
-    const sectionTitle = document.getElementById('section-title');
+
+    const sectionTitle    = document.getElementById('section-title');
     const sectionSubtitle = document.getElementById('section-subtitle');
-    
+
     if (titles[section]) {
-        sectionTitle.textContent = titles[section].title;
+        sectionTitle.textContent    = titles[section].title;
         sectionSubtitle.textContent = titles[section].subtitle;
     }
 }
@@ -1352,6 +1366,77 @@ async function initializeDashboard() {
 // Función principal que lee activos + perfil cliente
 // y actualiza los 6 bloques en tiempo real
 // ─────────────────────────────────────────────────────
+
+// ── Dashboard: Bloque Objetivos del Cliente ───────────────────────────
+function renderBloqueObjetivosDashboard(activos, clientData, gastosMensualesCOP) {
+    const el = document.getElementById('db-bloque-objetivos');
+    if (!el) return;
+
+    const todos = c3C6Todos(clientData);
+    if (todos.length === 0) {
+        el.innerHTML = '<div class="dashboard-objetivos">'
+            + '<div class="dashboard-objetivos obj-titulo">OBJETIVOS DEL CLIENTE</div>'
+            + '<div style="font-size:13px;color:#64748b;">⚠️ No hay objetivos registrados — ve al perfil del cliente para agregar las metas financieras.</div>'
+            + '</div>';
+        return;
+    }
+
+    // Calcular métricas usando c4Metricas para consistencia
+    const met = c4Metricas(activos, gastosMensualesCOP);
+    met.portafolioProductivoCOP = calcularValorPortafolioProductivoCOP(activos);
+    const c6Data = c3C6Datos(clientData, met, gastosMensualesCOP);
+
+    const fmt = n => new Intl.NumberFormat('es-CO', {
+        style: 'currency', currency: 'COP',
+        minimumFractionDigits: 0, maximumFractionDigits: 0
+    }).format(Math.round(n));
+
+    // Build cada objetivo
+    const objRows = c6Data.todos.map((o, i) => {
+        const nombre = c6NombreObjetivo(o);
+        const capAsig = o.capAgotada
+            ? fmt(0) + '/mes'
+            : fmt(o.ahorroAsignado) + '/mes';
+        const capIcon = o.viable_ahorro ? '✅' : '⚠️';
+        const patriIcon = o.viable_patrimonio ? '✅' : '⚠️';
+        const veredicto = o.viable
+            ? '<span class="obj-viable">✅ Viable</span>'
+            : '<span class="obj-gap">🔴 No viable</span>';
+
+        const sep = i < c6Data.todos.length - 1 ? '<hr class="obj-separador">' : '';
+        return '<div>'
+            + '<div style="display:flex;justify-content:space-between;align-items:baseline;">'
+            +   '<span class="obj-nombre">' + nombre + '</span>'
+            +   '<span style="font-size:12px;color:#64748b;">' + (o.prioridad || '') + ' • ' + o.meses + ' meses</span>'
+            + '</div>'
+            + '<div class="obj-detalle"><span>Costo</span><span>' + fmt(o.costoEstimado) + '</span></div>'
+            + '<div class="obj-detalle"><span>Ahorro requerido</span><span>' + fmt(o.ahorroReq) + '/mes</span></div>'
+            + '<div class="obj-detalle"><span>Capacidad asignada</span><span>' + capIcon + ' ' + capAsig + '</span></div>'
+            + '<div class="obj-detalle"><span>Patrimonio proyectado</span><span>' + patriIcon + ' ' + fmt(o.patriProyectado) + '</span></div>'
+            + '<div style="margin-top:6px;">' + veredicto + '</div>'
+            + sep + '</div>';
+    }).join('');
+
+    // Resumen de capacidad
+    const capTotal = c6Data.capAhorro;
+    const reqTotal = c6Data.ahorroTotalReq;
+    const gapCap   = reqTotal - capTotal;
+    const capOk    = capTotal >= reqTotal;
+    const resumen  = '<hr class="obj-separador">'
+        + '<div style="font-size:12px;font-weight:600;color:#4a4f64;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Distribución de capacidad de ahorro</div>'
+        + '<div class="obj-detalle"><span>Capacidad total</span><span>' + fmt(capTotal) + '/mes</span></div>'
+        + '<div class="obj-detalle"><span>Ahorro total requerido</span><span>' + fmt(reqTotal) + '/mes</span></div>'
+        + '<div class="obj-detalle"><span></span><span>' + (capOk
+            ? '<span class="obj-viable">✅ Suficiente</span>'
+            : '<span class="obj-gap">⚠️ Gap de ' + fmt(gapCap) + '/mes</span>') + '</span></div>';
+
+    el.innerHTML = '<div class="dashboard-objetivos">'
+        + '<div class="obj-titulo">OBJETIVOS DEL CLIENTE</div>'
+        + objRows
+        + resumen
+        + '</div>';
+}
+
 async function loadDashboardData() {
     if (!selectedClientId) return;
 
@@ -1380,17 +1465,21 @@ async function loadDashboardData() {
         metricas.portafolioProductivoCOP = calcularValorPortafolioProductivoCOP(activos);
 
         // ── 4. RENDERIZAR ────────────────────────────────
+        renderBloqueObjetivosDashboard(activos, selectedClientData || {}, gastosMensualesCOP);
         renderBloque1_Patrimonio(metricas);
         renderBloque2_Ingresos(metricas, gastosMensualesCOP);
         renderBloque3_Liquidez(metricas, gastosMensualesCOP);
         renderBloque4_TipoActivo(metricas);
         renderBloque5_Moneda(metricas);
         renderBloque6_IF(metricas, gastosMensualesCOP);
+        renderBloqueDeuda(activos, metricas.activosBrutosCOP, metricas.pasivosTotalCOP);
         // Bloques 7-10: concentraciones extra
         const _concData = renderBloque7_Geo(activos, selectedClientData || {});
         renderBloque8_Negocio(_concData);
         renderBloque9_IngresosDep(_concData);
         renderBloque10_Sector(_concData);
+        renderBloqueExposicionLegal(activos, metricas.patrimonioCOP);
+        renderBloqueScoreFiscal(activos, selectedClientData || {});
         renderResumenConcentraciones(_concData);
 
         // Log de diagnóstico
@@ -1467,6 +1556,7 @@ function calcularMetricasDashboard(activos, gastosMensualesCOP) {
     let activosBrutosCOP = 0;
     let pasivosTotalCOP  = 0;
     let totalIngresosPasivos = 0;
+    let totalIngPasivoReinvertido = 0;
     let activosAltaLiquidezCOP = 0;
 
     const porTipo   = {};
@@ -1499,7 +1589,10 @@ function calcularMetricasDashboard(activos, gastosMensualesCOP) {
         pasivosTotalCOP  += isNaN(pasivoCOP) ? 0 : pasivoCOP;
 
         if (asset.generatesIncome && asset.monthlyIncome) {
-            totalIngresosPasivos += parseFloat(asset.monthlyIncome) || 0;
+            const ingBruto = parseFloat(asset.monthlyIncome) || 0;
+            const reinvPct = parseFloat(asset.incomeReinvestPct) || 0;
+            totalIngresosPasivos     += ingBruto * ((100 - reinvPct) / 100);
+            totalIngPasivoReinvertido += ingBruto * (reinvPct / 100);
         }
 
         if (liquidez === 'Alta') activosAltaLiquidezCOP += netoCOP;
@@ -1544,6 +1637,8 @@ function calcularMetricasDashboard(activos, gastosMensualesCOP) {
         activosBrutosCOP,
         pasivosTotalCOP,
         totalIngresosPasivos,
+        totalIngPasivoReinvertido,
+        totalIngPasivoBruto: totalIngresosPasivos + totalIngPasivoReinvertido,
         activosAltaLiquidezCOP,
         mesesLiquidez,
         distribucionTipo,
@@ -1610,7 +1705,9 @@ function renderBloque1_Patrimonio(m) {
 // BLOQUE 2 — Ingresos Pasivos
 // ─────────────────────────────────────────────────────
 function renderBloque2_Ingresos(m, gastosMensualesCOP) {
-    const ip = m.totalIngresosPasivos;
+    const ip = m.totalIngresosPasivos;  // solo lo que va a gastos
+    const ipReinv = m.totalIngPasivoReinvertido || 0;
+    const ipBruto = m.totalIngPasivoBruto || (ip + ipReinv);
     const pct = gastosMensualesCOP > 0 ? (ip / gastosMensualesCOP) * 100 : 0;
 
     // Card semaphore
@@ -1618,13 +1715,24 @@ function renderBloque2_Ingresos(m, gastosMensualesCOP) {
     else if (pct >= 20) setCardSemaphore('db-bloque-ingresos', 'card-warning');
     else                setCardSemaphore('db-bloque-ingresos', 'card-danger');
 
-    setText('db-ingresos-valor', fmtCOP(ip) + ' / mes');
+    // Mostrar bruto + desglose
+    const valorTxt = ipReinv > 0
+        ? fmtCOP(ipBruto) + ' / mes'
+        : fmtCOP(ip) + ' / mes';
+    setText('db-ingresos-valor', valorTxt);
     setText('db-ingresos-pct',   pct.toFixed(1) + '%');
-    setText('db-ingresos-caption',
-        gastosMensualesCOP > 0
-            ? pct.toFixed(1) + '% de los gastos mensuales cubiertos'
-            : 'Ingresa los gastos mensuales en el perfil del cliente'
-    );
+
+    // Caption con desglose si hay reinversión
+    let captionTxt;
+    if (gastosMensualesCOP > 0) {
+        captionTxt = pct.toFixed(1) + '% de los gastos mensuales cubiertos';
+        if (ipReinv > 0) {
+            captionTxt += '  ·  Para gastos: ' + fmtCOP(ip) + '  ·  Reinvertidos: ' + fmtCOP(ipReinv);
+        }
+    } else {
+        captionTxt = 'Ingresa los gastos mensuales en el perfil del cliente';
+    }
+    setText('db-ingresos-caption', captionTxt);
 
     // Semáforo
     let semClass = 'db-semaforo';
@@ -2023,14 +2131,14 @@ const SUBTIPOS_CON_SECTOR = new Set([
     'Fondo de inversión colectiva FIC',
     'Bonos o títulos de deuda',
     'REIT',
-    'Skandia Multifund',
+    'Fondo de pensiones voluntarias FPV',
     'Cartera gestionada por terceros',
 ]);
 
 const SECTOR_POR_DEFECTO = {
     'ETF o fondo de inversión internacional': 'Global / Diversificado',
     'REIT':                                   'Real Estate / Inmobiliario',
-    'Skandia Multifund':                      'Global / Diversificado',
+    'Fondo de pensiones voluntarias FPV':     'Global / Diversificado',
 };
 
 // Opciones válidas para migración de datos legados
@@ -2094,7 +2202,7 @@ const SUBTIPOS_ADQUISICION = new Set([
     'Fondo de inversión colectiva FIC',
     'Bonos o títulos de deuda',
     'REIT',
-    'Skandia Multifund',
+    'Fondo de pensiones voluntarias FPV',
     'Cartera gestionada por terceros',
 ]);
 
@@ -2299,6 +2407,13 @@ addAssetBtn?.addEventListener('click', () => {
     if (generatesIncomeNo) generatesIncomeNo.checked = true;
     const monthlyIncomeGroup = document.getElementById('monthly-income-group');
     if (monthlyIncomeGroup) monthlyIncomeGroup.style.display = 'none';
+    // Resetear destino de ingreso → gasto
+    const destGastoRadio = document.getElementById('income-destination-gasto');
+    if (destGastoRadio) destGastoRadio.checked = true;
+    const reinvPctGrp = document.getElementById('income-reinvest-pct-group');
+    if (reinvPctGrp) reinvPctGrp.style.display = 'none';
+    const reinvPctInput = document.getElementById('income-reinvest-pct');
+    if (reinvPctInput) reinvPctInput.value = '50';
     
     // Ocultar sector y limpiar select
     const sectorSection = document.getElementById('sector-section');
@@ -2416,6 +2531,16 @@ assetForm?.addEventListener('submit', async (e) => {
         // Ingresos pasivos
         generatesIncome: generatesIncome,
         monthlyIncome: generatesIncome ? parseFloat(document.getElementById('asset-monthly-income').value) || 0 : 0,
+        incomeDestination: generatesIncome
+            ? (document.querySelector('input[name="income-destination"]:checked')?.value || 'gasto')
+            : 'gasto',
+        incomeReinvestPct: (() => {
+            if (!generatesIncome) return 0;
+            const dest = document.querySelector('input[name="income-destination"]:checked')?.value || 'gasto';
+            if (dest === 'reinvierte') return 100;
+            if (dest === 'gasto') return 0;
+            return parseFloat(document.getElementById('income-reinvest-pct')?.value) || 50;
+        })(),
         
         // Seguro vida deudor (solo relevante si hay pasivo)
         seguroVidaDeudor: (parseFloat(document.getElementById('asset-liability').value) || 0) > 0
@@ -2687,6 +2812,14 @@ window.editAsset = async function(assetId) {
                 if (radioYes) radioYes.checked = true;
                 if (incomeGroup) incomeGroup.style.display = 'block';
                 document.getElementById('asset-monthly-income').value = asset.monthlyIncome || 0;
+                // Repoblar destino del ingreso
+                const dest = asset.incomeDestination || 'gasto';
+                const destRadio = document.getElementById(`income-destination-${dest}`);
+                if (destRadio) destRadio.checked = true;
+                const pctGrp = document.getElementById('income-reinvest-pct-group');
+                if (pctGrp) pctGrp.style.display = dest === 'parcial' ? 'block' : 'none';
+                const pctInput = document.getElementById('income-reinvest-pct');
+                if (pctInput) pctInput.value = asset.incomeReinvestPct ?? 50;
             } else {
                 if (radioNo) radioNo.checked = true;
                 if (incomeGroup) incomeGroup.style.display = 'none';
@@ -2919,7 +3052,8 @@ function c4Metricas(activos, gastosMes) {
     let inmuRenta = 0;
 
     // Capa 2: listas detalladas
-    let ingPasivoTotalCOP = 0;   // TODOS los ingresos pasivos (mensual)
+    let ingPasivoTotalCOP = 0;       // ingresos pasivos que van a gastos (mensual)
+    let ingPasivoReinvertidoCOP = 0; // ingresos pasivos que se reinvierten (mensual)
     let liquidezMediaCOP  = 0;   // activos media liq estratégicos
     const activosAltaLiq  = [];  // { name, subtype, neto, currency }
     const activosSemiLiq  = [];  // { name, subtype, neto, montoAccesible, plazoLiqDias }
@@ -3008,9 +3142,14 @@ function c4Metricas(activos, gastosMes) {
         if (a.liquidity === 'Alta') altaLiqCOP += neto;
         if (a.category) tipos.add(a.category);
 
-        // Capa 2: ingresos pasivos TOTALES
+        // Capa 2: ingresos pasivos — separar por destino
         if (a.generatesIncome && (parseFloat(a.monthlyIncome) || 0) > 0) {
-            ingPasivoTotalCOP += parseFloat(a.monthlyIncome) || 0;
+            const ingTotal = parseFloat(a.monthlyIncome) || 0;
+            const reinvestPct = parseFloat(a.incomeReinvestPct) || 0;
+            const pctGasto = (100 - reinvestPct) / 100;
+            const pctReinv = reinvestPct / 100;
+            ingPasivoTotalCOP      += ingTotal * pctGasto;
+            ingPasivoReinvertidoCOP += ingTotal * pctReinv;
         }
 
         // Capa 2: activos Alta liquidez (excluir Uso Personal)
@@ -3181,7 +3320,9 @@ function c4Metricas(activos, gastosMes) {
         pasivosIncluidos, pasivosExcluidos, pasivosNoCubCOP,
         tieneSkandiaCP,
         // Capa 2
-        ingPasivoTotalCOP, liquidezMediaCOP, activosAltaLiq, activosSemiLiq,
+        ingPasivoTotalCOP, ingPasivoReinvertidoCOP,
+        ingPasivoTotalBrutoCOP: ingPasivoTotalCOP + ingPasivoReinvertidoCOP,
+        liquidezMediaCOP, activosAltaLiq, activosSemiLiq,
         // Capa 3
         activosInversion, valorIntlCOP, valorRiesgoAlto, inmueblesRentaC3,
         segurosConPension,
@@ -4220,7 +4361,7 @@ function c1BuildCapa1HTML(rp, met, gastosMes, clientData) {
                     <span class="c4-rc-badge c4-rc-mal" id="c4-rc-badge-${i}">🔴 No tiene</span>
                 </div>
                 ${item.sublabel ? `<div style="font-size:1rem;color:#94a3b8;padding:2px 0 6px">${item.sublabel}</div>` : ''}
-                <div class="c4-rc-cols">
+                   <div class="c4-rc-cols">
                     <div class="c4-cob-item">
                         <div class="c4-cob-lbl">Cobertura recomendada</div>
                         <div class="c4-cob-val" id="c4-rc-req-${i}">—</div>
@@ -4232,6 +4373,10 @@ function c1BuildCapa1HTML(rp, met, gastosMes, clientData) {
                                 placeholder="COP…" value="${((rp.rc||{})[`rc_${i}`]) || ''}">
                             <span class="c4-input-unit">COP</span>
                         </div>
+                    </div>
+                    <div class="c4-cob-item">
+                        <div class="c4-cob-lbl">Gap</div>
+                        <div class="c4-cob-val" id="c4-rc-gap-${i}">—</div>
                     </div>
                 </div>
             </div>`;
@@ -4465,6 +4610,8 @@ function c4UpdateAutos(met, gastosMes, resp, clientData) {
     rcItems.forEach((item, i) => {
         set(`c4-rc-req-${i}`, c4cop(item.recomendada));
         const actRC = parseFloat(resp?.rc?.[`rc_${i}`]) || 0;
+        const gapRC = item.recomendada - actRC;
+        set(`c4-rc-gap-${i}`, gapRC > 0 ? c4cop(gapRC) : '$0 ✓', gapRC > 0 ? 'c4-cob-mal' : 'c4-cob-ok');
         const badge = document.getElementById(`c4-rc-badge-${i}`);
         if (badge) {
             if      (actRC === 0)               { badge.textContent = '🔴 No tiene';    badge.className = 'c4-rc-badge c4-rc-mal'; }
@@ -4472,7 +4619,6 @@ function c4UpdateAutos(met, gastosMes, resp, clientData) {
             else                                { badge.textContent = '✅ Adecuada';     badge.className = 'c4-rc-badge c4-rc-ok'; }
         }
     });
-
     // Capa 1 C4: Estructuras detectadas
     const estructEl = document.getElementById('c4-estruc-info');
     if (estructEl) {
@@ -4546,18 +4692,22 @@ function c4UpdateAutos(met, gastosMes, resp, clientData) {
 
 // ── Renderizar tarjeta de score global ────────────────────────────────
 function c4RenderGlobal(scores) {
-    const total = (scores.proteccion || 0) + (scores.liquidez || 0)
-                + (scores.crecimiento || 0) + (scores.diversificacion || 0);
-    const max   = 40;
-    const pct   = Math.min(100, (total / max) * 100);
+    // Promedio de los 4 scores — escala 0-10
+    const total = (
+        (scores.proteccion      || 0) +
+        (scores.liquidez        || 0) +
+        (scores.crecimiento     || 0) +
+        (scores.diversificacion || 0)
+    ) / 4;
+    const pct = Math.min(100, total / 10 * 100);
 
-    // Etiqueta y clase de color según puntaje
+    // Semáforo en escala 0-10
     let cls, etq, sub;
-    if      (total >= 35) { cls = 'excelente';  etq = '🏆 Excelente';   sub = 'Arquitectura patrimonial sólida y bien protegida'; }
-    else if (total >= 28) { cls = 'muybueno';   etq = '✅ Muy bueno';   sub = 'Buena base — algunos criterios por optimizar'; }
-    else if (total >= 20) { cls = 'aceptable';  etq = '🟡 Aceptable';   sub = 'Avances importantes, pero hay brechas relevantes'; }
-    else if (total >= 12) { cls = 'deficiente'; etq = '🟠 Deficiente';  sub = 'Vulnerabilidades significativas que atender'; }
-    else                  { cls = 'critico';    etq = '🔴 Crítico';     sub = 'Patrimonio expuesto — acción inmediata requerida'; }
+    if      (total >= 9.0) { cls = 'excelente';  etq = '🏆 Excelente';   sub = 'Arquitectura patrimonial sólida y bien protegida'; }
+    else if (total >= 7.5) { cls = 'muybueno';   etq = '✅ Muy bueno';   sub = 'Buena base — algunos criterios por optimizar'; }
+    else if (total >= 6.0) { cls = 'aceptable';  etq = '🟡 Aceptable';   sub = 'Estructura funcional con brechas relevantes'; }
+    else if (total >= 4.0) { cls = 'deficiente'; etq = '🟠 Deficiente';  sub = 'Vulnerabilidades significativas que atender'; }
+    else                   { cls = 'critico';    etq = '🔴 Crítico';     sub = 'Requiere atención urgente en múltiples frentes'; }
 
     const LABELS = { proteccion: 'Protección', liquidez: 'Liquidez', crecimiento: 'Crecimiento', diversificacion: 'Diversificación' };
     const FILLS  = { proteccion: '#4a90d9', liquidez: '#34d399', crecimiento: '#f0c040', diversificacion: '#a78bfa' };
@@ -5499,8 +5649,14 @@ function c3C6Datos(clientData, met, gastosMes) {
         : patriTotal;  // fallback si no viene calculado
 
     const cagrData  = c3CalcCAGR(met, clientData);
-    const tasa = (cagrData.pctConCAGR >= 50 && cagrData.cagrPond !== null)
+    const tasaBase = (cagrData.pctConCAGR >= 50 && cagrData.cagrPond !== null)
         ? cagrData.cagrPond : 0.06;
+
+    // Tasa adicional por reinversión de ingresos pasivos
+    const tasaReinversion = portafolioProdTotal > 0
+        ? (met.ingPasivoReinvertidoCOP || 0) * 12 / portafolioProdTotal
+        : 0;
+    const tasa = tasaBase + tasaReinversion;
 
     // Paso 1: calcular meses y enriquecer, luego ordenar por cercanía
     const conMeses = todos.map(o => {
@@ -6213,9 +6369,7 @@ function _objBuildCard(plazo, idx, datos, clientData, activos) {
             ${p}
         </label>`).join('');
 
-    const via = datos?.costoEstimado && datos?.fechaObjetivo
-        ? _objViabilidadHTML(_objViabilidad(datos.costoEstimado, datos.fechaObjetivo, clientData, activos))
-        : '';
+    // Viabilidad movida al dashboard (Cambio 2)
 
     return `<div class="obj-card" id="obj-card-${uid}">
         <div class="obj-card-header">
@@ -6249,7 +6403,6 @@ function _objBuildCard(plazo, idx, datos, clientData, activos) {
                 <div class="obj-pri-opts">${prioridades}</div>
             </div>
         </div>
-        <div id="obj-via-${uid}">${via}</div>
     </div>`;
 }
 
@@ -6318,28 +6471,13 @@ function _objRenderLista(plazo) {
                 const pif   = document.getElementById(`obj-pif-wrap-${uid}`);
                 if (otro) otro.style.display  = r.value === 'otro'       ? '' : 'none';
                 if (pif)  pif.style.display   = r.value === 'if_parcial' ? '' : 'none';
-                _objActualizarViabilidad(plazo, i);
             });
         });
-        // costo y fecha → recalcular viabilidad
-        [`obj_costo_${uid}`, `obj_fecha_${uid}`].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('change', () => _objActualizarViabilidad(plazo, i));
-            if (el && id.includes('costo')) el.addEventListener('input', () => _objActualizarViabilidad(plazo, i));
-        });
+        // viabilidad en tiempo real eliminada de aquí (ver dashboard)
     });
 }
 
-// ── Actualizar solo el bloque de viabilidad de una card ───────────────
-function _objActualizarViabilidad(plazo, idx) {
-    const uid    = `${plazo}_${idx}`;
-    const costo  = parseFloat(document.getElementById(`obj_costo_${uid}`)?.value) || null;
-    const fecha  = document.getElementById(`obj_fecha_${uid}`)?.value || '';
-    const viaEl  = document.getElementById(`obj-via-${uid}`);
-    if (!viaEl) return;
-    const via    = _objViabilidad(costo, fecha, selectedClientData || {}, window._objActivosCached || []);
-    viaEl.innerHTML = _objViabilidadHTML(via);
-}
+// _objActualizarViabilidad eliminada — viabilidad ahora se muestra en el dashboard
 
 // ── Renderizar card de largo plazo ────────────────────────────────────
 function _objRenderLargo(fechaGuardada) {
@@ -6956,6 +7094,166 @@ function _dbConcMetricas(activos, clientData) {
     };
 }
 
+// ── Bloque Análisis de Deuda ─────────────────────────────────────────
+function renderBloqueDeuda(activos, activosBrutosCOP, pasivosTotalCOP) {
+    const body = document.getElementById('db-deuda-body');
+    if (!body) return;
+
+    if (!activos || activos.length === 0 || pasivosTotalCOP <= 0) {
+        body.innerHTML = '<p class="db-legend-empty">Sin deudas registradas</p>';
+        setCardSemaphore('db-bloque-deuda', 'card-neutral');
+        return;
+    }
+
+    // ── DIMENSIÓN 1: Ratio de apalancamiento ────────────────────────
+    const ratioApal = activosBrutosCOP > 0
+        ? pasivosTotalCOP / activosBrutosCOP * 100 : 0;
+
+    let semApal, labelApal;
+    if      (ratioApal < 20) { semApal = '#00c896'; labelApal = '✅ Bajo — patrimonio sólido'; }
+    else if (ratioApal < 30) { semApal = '#00c896'; labelApal = '✅ Moderado — aceptable'; }
+    else if (ratioApal < 50) { semApal = '#f5a623'; labelApal = '⚠️ Alto — requiere monitoreo'; }
+    else                     { semApal = '#ff4d6d'; labelApal = '🔴 Crítico — patrimonio en riesgo'; }
+
+    const cardClass = ratioApal < 30 ? 'card-success'
+        : ratioApal < 50 ? 'card-warning' : 'card-danger';
+    setCardSemaphore('db-bloque-deuda', cardClass);
+
+    // ── DIMENSIÓN 2: Calidad de deuda ───────────────────────────────
+    let deudaProductiva = 0, deudaVivienda = 0, deudaImproductiva = 0;
+    activos.forEach(a => {
+        const pas = convertirACOP(parseFloat(a.liability) || 0, a.currency || 'COP');
+        if (isNaN(pas) || pas <= 0) return;
+        if (a.generatesIncome && (parseFloat(a.monthlyIncome) || 0) > 0) {
+            deudaProductiva += pas;
+        } else if (a.subtype === 'Casa o apartamento donde vivo') {
+            deudaVivienda += pas;
+        } else {
+            deudaImproductiva += pas;
+        }
+    });
+    const pctProd   = pasivosTotalCOP > 0 ? deudaProductiva   / pasivosTotalCOP * 100 : 0;
+    const pctViv    = pasivosTotalCOP > 0 ? deudaVivienda     / pasivosTotalCOP * 100 : 0;
+    const pctImprod = pasivosTotalCOP > 0 ? deudaImproductiva / pasivosTotalCOP * 100 : 0;
+
+    // ── DIMENSIÓN 3: LTV por activo + tasa vs retorno ───────────────
+    const activosConDeuda = activos
+        .filter(a => (parseFloat(a.liability) || 0) > 0)
+        .map(a => {
+            const val = convertirACOP(parseFloat(a.value) || 0, a.currency || 'COP');
+            const pas = convertirACOP(parseFloat(a.liability) || 0, a.currency || 'COP');
+            const ltv = val > 0 ? pas / val * 100 : 0;
+            return {
+                name: a.description || a.subtype || 'Activo',
+                val, pas, ltv,
+                debtRate: parseFloat(a.liabilityRate) || null,
+                monthlyIncome: parseFloat(a.monthlyIncome) || 0,
+                generatesIncome: a.generatesIncome || false
+            };
+        })
+        .sort((a, b) => b.pas - a.pas);
+
+    // ── Render ──────────────────────────────────────────────────────
+    const barApal = `
+        <div style="margin-bottom:16px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+                <span style="font-size:.85rem;color:var(--db-text-secondary)">Ratio de apalancamiento</span>
+                <span style="font-size:1.4rem;font-weight:700;color:${semApal}">${ratioApal.toFixed(1)}%</span>
+            </div>
+            <div style="height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden">
+                <div style="height:100%;width:${Math.min(ratioApal, 100)}%;background:${semApal};border-radius:3px"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--db-text-muted);margin-top:2px">
+                <span>${labelApal}</span>
+                <span>${fmtCOP(pasivosTotalCOP)} de ${fmtCOP(activosBrutosCOP)}</span>
+            </div>
+            <div style="font-size:.75rem;color:var(--db-text-muted);margin-top:2px;font-style:italic">
+                Meta: ratio &lt;30% | Crítico: &gt;50%
+            </div>
+        </div>`;
+
+    const barCalidad = `
+        <div style="margin-bottom:16px">
+            <div style="font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--db-text-muted);margin-bottom:8px">
+                Calidad de la deuda
+            </div>
+            <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,0.06);margin-bottom:8px">
+                ${pctProd > 0 ? `<div style="width:${pctProd}%;background:#00c896;height:100%"></div>` : ''}
+                ${pctViv > 0 ? `<div style="width:${pctViv}%;background:#5ba0f5;height:100%"></div>` : ''}
+                ${pctImprod > 0 ? `<div style="width:${pctImprod}%;background:#ff4d6d;height:100%"></div>` : ''}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+                ${deudaProductiva > 0 ? `<div class="db-legend-item">
+                    <span class="db-legend-dot" style="background:#00c896"></span>
+                    <span>Productiva (activo genera renta)</span>
+                    <span class="db-legend-pct">${pctProd.toFixed(1)}%</span>
+                    <span style="color:var(--db-text-muted);font-size:1rem;margin-left:4px">${fmtCOP(deudaProductiva)}</span>
+                </div>` : ''}
+                ${deudaVivienda > 0 ? `<div class="db-legend-item">
+                    <span class="db-legend-dot" style="background:#5ba0f5"></span>
+                    <span>Vivienda propia</span>
+                    <span class="db-legend-pct">${pctViv.toFixed(1)}%</span>
+                    <span style="color:var(--db-text-muted);font-size:1rem;margin-left:4px">${fmtCOP(deudaVivienda)}</span>
+                </div>` : ''}
+                ${deudaImproductiva > 0 ? `<div class="db-legend-item">
+                    <span class="db-legend-dot" style="background:#ff4d6d"></span>
+                    <span>Improductiva (consumo, tarjetas)</span>
+                    <span class="db-legend-pct">${pctImprod.toFixed(1)}%</span>
+                    <span style="color:var(--db-text-muted);font-size:1rem;margin-left:4px">${fmtCOP(deudaImproductiva)}</span>
+                </div>` : ''}
+            </div>
+            ${deudaImproductiva > 0 ? `<div style="margin-top:6px;padding:6px 8px;background:rgba(255,77,109,0.08);border-radius:6px;font-size:.82rem;color:#ff4d6d">
+                ⚠️ ${fmtCOP(deudaImproductiva)} en deuda improductiva — priorizar su eliminación antes de nuevas inversiones
+            </div>` : ''}
+        </div>`;
+
+    const tablaActivos = activosConDeuda.length > 0 ? `
+        <details style="margin-top:4px">
+            <summary style="cursor:pointer;font-size:1rem;font-weight:600;color:var(--db-text-secondary);padding:4px 0">
+                Ver detalle por activo (${activosConDeuda.length})
+            </summary>
+            <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+                ${activosConDeuda.map(a => {
+                    const ltvColor = a.ltv < 50 ? '#00c896' : a.ltv < 80 ? '#f5a623' : '#ff4d6d';
+                    const ltvLabel = a.ltv < 50 ? '✅ LTV bajo' : a.ltv < 80 ? '⚠️ LTV moderado' : '🔴 LTV alto';
+                    const spreadHtml = a.debtRate !== null && a.generatesIncome && a.monthlyIncome > 0 ? (() => {
+                        const capRate = a.val > 0 ? a.monthlyIncome * 12 / a.val * 100 : 0;
+                        const spread = capRate - a.debtRate;
+                        const spreadColor = spread > 0 ? '#00c896' : '#ff4d6d';
+                        const spreadLabel = spread > 0
+                            ? `✅ Spread positivo +${spread.toFixed(1)}%`
+                            : `🔴 Spread negativo ${spread.toFixed(1)}%`;
+                        return `<div style="font-size:.82rem;color:${spreadColor}">
+                            Cap rate: ${capRate.toFixed(1)}% vs tasa deuda: ${a.debtRate.toFixed(1)}% → ${spreadLabel}
+                        </div>`;
+                    })()
+                    : a.debtRate !== null
+                        ? `<div style="font-size:.82rem;color:var(--db-text-muted)">Tasa deuda: ${a.debtRate.toFixed(1)}% EA</div>`
+                        : `<div style="font-size:.82rem;color:var(--db-text-muted);font-style:italic">Tasa no ingresada</div>`;
+                    return `<div style="padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:6px">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:4px">
+                            <span style="font-size:.92rem;font-weight:600;color:var(--db-text-primary)">${a.name}</span>
+                            <span style="font-size:.88rem;font-weight:700;color:${ltvColor}">LTV ${a.ltv.toFixed(1)}% — ${ltvLabel}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:.82rem;color:var(--db-text-secondary);margin-bottom:4px;flex-wrap:wrap;gap:4px">
+                            <span>Valor: ${fmtCOP(a.val)}</span>
+                            <span>Deuda: ${fmtCOP(a.pas)}</span>
+                            <span>Neto: ${fmtCOP(a.val - a.pas)}</span>
+                        </div>
+                        ${spreadHtml}
+                    </div>`;
+                }).join('')}
+            </div>
+        </details>` : '';
+
+    const alertaHtml = pctImprod > 30 ? `
+        <div style="margin-top:10px;padding:8px 10px;background:rgba(255,77,109,0.08);border-radius:6px;border-left:3px solid #ff4d6d;font-size:.85rem;color:#ff4d6d">
+            🔴 Más del 30% de la deuda es improductiva. Priorizar su eliminación antes de nuevas inversiones.
+        </div>` : '';
+
+    body.innerHTML = barApal + barCalidad + tablaActivos + alertaHtml;
+}
+
 // ── Bloque 7: Concentración Geográfica ───────────────────────────────
 function renderBloque7_Geo(activos, clientData) {
     const d = _dbConcMetricas(activos, clientData);
@@ -7211,6 +7509,441 @@ function renderBloque10_Sector(d) {
     if (alertEl) alertEl.style.display = 'none';
 }
 
+// ── Score Fiscal ─────────────────────────────────────────────────────
+// ══ CONSTANTES FISCALES — ACTUALIZAR CADA ENERO ══
+const UVT_VIGENTE       = 52374;   // UVT 2026 — Resolución DIAN 000238 del 15-dic-2025
+const TOPE_UVT_126      = 3800;    // Art. 126-1 + 126-4 compartido
+const PCT_INGRESO_MAX   = 0.30;    // 30% del ingreso bruto anual
+const TOPE_UVT_GLOBAL   = 1340;    // Tope global deducciones+exenciones Art. 336
+const PCT_GLOBAL        = 0.40;    // 40% del ingreso neto
+const SUBTIPOS_FISCAL   = new Set(['Fondo de pensiones voluntarias FPV', 'Seguro de pensión con ahorro', 'Cuenta AFC']);
+
+async function renderBloqueScoreFiscal(activos, clientData) {
+    const body = document.getElementById('db-score-fiscal-body');
+    if (!body) return;
+
+    if (!activos || activos.length === 0) {
+        body.innerHTML = '<p class="db-legend-empty">Sin activos registrados</p>';
+        setCardSemaphore('db-bloque-score-fiscal', 'card-neutral');
+        return;
+    }
+
+    // ── Load saved data ─────────────────────────
+    let guardado = {};
+    try {
+        const snap = await getDoc(doc(db, 'clients', selectedClientId));
+        if (snap.exists() && snap.data().scoreFiscal) guardado = snap.data().scoreFiscal;
+    } catch (e) { console.error('Error cargando scoreFiscal:', e); }
+
+    // ── Detect context ──────────────────────────
+    const paisesSet = new Set();
+    let tieneUSA = false;
+    activos.forEach(a => {
+        const loc = (a.location || '').trim();
+        if (loc) paisesSet.add(loc);
+        if (/estados\s*unidos|usa|eeuu|^us$/i.test(loc)) tieneUSA = true;
+        if (!tieneUSA && a.currency === 'USD' && /estados\s*unidos|usa|eeuu|^us$/i.test(loc)) tieneUSA = true;
+    });
+    const tieneIntl   = paisesSet.size >= 2;
+    const tieneEmpresa = activos.some(a => a.category === 'Empresarial');
+
+    // ── C1: Detect fiscal instruments ───────────
+    const instrumentos = activos.filter(a => SUBTIPOS_FISCAL.has(a.subtype));
+    const ingBrutoMensual = parseFloat(clientData?.monthlyActiveIncome) || 0;
+    const ingBrutoAnualDefault = ingBrutoMensual * 12;
+    const ingBrutoAnualSaved = guardado.c1_ingresoBrutoAnual;
+
+    // Calculate aportes from detected instruments
+    let aportesDetectados = 0;
+    const instDetalle = instrumentos.map(a => {
+        const prima = parseFloat(a.primaMensual) || 0;
+        const anual = prima > 0 ? prima * 12 : 0;
+        aportesDetectados += anual;
+        const art = a.subtype === 'Cuenta AFC' ? 'Art. 126-4' : 'Art. 126-1';
+        return { name: a.description || a.subtype, subtype: a.subtype, art, primaM: prima, anual };
+    });
+
+    // ── Determine which criteria apply ──────────
+    const criterios = [
+        { id: 'c1', label: 'Aprovechamiento cupo fiscal Art. 126', max: 3, aplica: true, tipo: 'auto' },
+        { id: 'c2', label: 'Declaraciones internacionales al día', max: 2, aplica: tieneIntl, tipo: 'radio',
+          hint: 'Incluye: declaración de activos en el exterior ante DIAN (Formato 160), declaraciones locales en cada jurisdicción, y FBAR si tiene cuentas en EEUU.',
+          opts: [{ v: 'si', l: 'Sí', p: 2 }, { v: 'parcial', l: 'Parcial', p: 1 }, { v: 'no', l: 'No', p: 0 }] },
+        { id: 'c3', label: 'Asesor fiscal con experiencia internacional', max: 2, aplica: tieneIntl, tipo: 'radio',
+          hint: 'Relevante cuando hay activos en múltiples jurisdicciones — convenios de doble tributación, precios de transferencia, etc.',
+          opts: [{ v: 'si', l: 'Sí', p: 2 }, { v: 'no', l: 'No', p: 0 }] },
+        { id: 'c4', label: 'Cumplimiento FATCA', max: 1, aplica: tieneUSA, tipo: 'radio',
+          hint: 'Aplica si tiene cuentas, inversiones o propiedades en EEUU. Incluye: formulario W-8BEN, FBAR (si >$10K USD en cuentas).',
+          opts: [{ v: 'si', l: 'Sí', p: 1 }, { v: 'no', l: 'No', p: 0 }] },
+        { id: 'c5', label: 'Activos internacionales declarados ante DIAN', max: 2, aplica: tieneIntl, tipo: 'radio',
+          hint: 'Ley 2277/2022 creó impuesto de normalización del 15% para activos omitidos. Declarar voluntariamente evita sanciones mayores.',
+          opts: [{ v: 'si', l: 'Sí, todos', p: 2 }, { v: 'no', l: 'No / No estoy seguro', p: 0 }] },
+        { id: 'c6', label: 'Planeación tributaria de dividendos', max: 3, aplica: tieneEmpresa, tipo: 'radio',
+          hint: 'Incluye: política formal de distribución de dividendos, optimización de la tarifa progresiva Art. 242 ET (dividendos domésticos), uso del descuento tributario Art. 254-1 si hay impuestos pagados en el exterior, y análisis de temporalidad en la distribución.',
+          opts: [{ v: 'si', l: 'Sí, política documentada', p: 3 }, { v: 'parcial', l: 'Parcial: sin estrategia', p: 1.5 }, { v: 'no', l: 'No: sin consideración tributaria', p: 0 }] },
+    ];
+
+    const aplicables = criterios.filter(c => c.aplica);
+    const maxPosible = aplicables.reduce((s, c) => s + c.max, 0);
+
+    // ── Build HTML ──────────────────────────────
+    const cop = n => fmtCOP(n);
+
+    // C1 block
+    const ingBrutoAnualActual = ingBrutoAnualSaved || ingBrutoAnualDefault;
+    const cupo126     = Math.min(ingBrutoAnualActual * PCT_INGRESO_MAX, TOPE_UVT_126 * UVT_VIGENTE);
+    const cupoGlobal  = Math.min(ingBrutoAnualActual * PCT_GLOBAL, TOPE_UVT_GLOBAL * UVT_VIGENTE);
+    const cupoEfectivo = Math.min(cupo126, cupoGlobal);
+    const aportesTotal = aportesDetectados + (parseFloat(guardado.c1_aportesManual) || 0);
+    const pctAprv      = cupoEfectivo > 0 ? Math.min((aportesTotal / cupoEfectivo) * 100, 100) : 0;
+    const cupoSinUsar  = Math.max(0, cupoEfectivo - aportesTotal);
+    const ahorroPotencial = cupoSinUsar * 0.35;
+
+    // C1 score
+    let ptsC1 = 0;
+    if (pctAprv >= 80) ptsC1 = 3;
+    else if (pctAprv >= 50) ptsC1 = 2;
+    else if (pctAprv >= 20) ptsC1 = 1;
+
+    // Calculate total points
+    let ptsTotal = ptsC1;
+    aplicables.filter(c => c.tipo === 'radio').forEach(c => {
+        const saved = guardado[c.id];
+        if (saved) {
+            const opt = c.opts.find(o => o.v === saved);
+            if (opt) ptsTotal += opt.p;
+        }
+    });
+
+    const scoreFinal = maxPosible > 0 ? (ptsTotal / maxPosible) * 10 : 0;
+
+    // Semaphore
+    let semColor, semLabel, cardClass;
+    if (scoreFinal >= 7)      { semColor = '#34d399'; semLabel = '🟢 Gestión fiscal sólida';         cardClass = 'card-success'; }
+    else if (scoreFinal >= 5) { semColor = '#eab308'; semLabel = '🟡 Gestión parcial — oportunidades'; cardClass = 'card-warning'; }
+    else if (scoreFinal >= 3) { semColor = '#f97316'; semLabel = '🟠 Gestión débil — riesgo';          cardClass = 'card-warning'; }
+    else                      { semColor = '#ef4444'; semLabel = '🔴 Crítico — exposición fiscal';     cardClass = 'card-danger'; }
+
+    setCardSemaphore('db-bloque-score-fiscal', cardClass);
+
+    // Context label
+    let contexto = '';
+    if (tieneEmpresa && tieneIntl) contexto = 'Empresario con presencia internacional — evaluación completa';
+    else if (tieneEmpresa)          contexto = 'Cliente empresario — incluye optimización de dividendos';
+    else if (tieneIntl)             contexto = `Activos en ${paisesSet.size} jurisdicciones — evaluación extendida`;
+    else                            contexto = 'Patrimonio doméstico — evaluación básica';
+
+    // Instruments list
+    const instHtml = instDetalle.length > 0
+        ? instDetalle.map(i => `<div style="display:flex;justify-content:space-between;padding:2px 0;font-size:1rem;color:var(--db-text-secondary)">
+            <span>${i.name} <span style="color:var(--db-text-muted)">(${i.art})</span></span>
+            <span style="font-weight:600;color:var(--db-text-primary)">${i.primaM > 0 ? cop(i.anual) + '/año' : 'Sin prima detectada'}</span>
+          </div>`).join('')
+        : '<div style="font-size:1rem;color:var(--db-text-muted)">No se detectaron instrumentos con beneficio fiscal</div>';
+
+    // Progress bar color
+    const barColor = pctAprv >= 80 ? '#34d399' : pctAprv >= 50 ? '#eab308' : '#ef4444';
+
+    // C1 HTML
+    const c1Html = `
+        <div style="padding:12px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:8px">
+            <div style="font-size:1rem;font-weight:600;color:var(--db-text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">
+                C1 — Aprovechamiento cupo fiscal Art. 126-1 / 126-4
+                <span style="float:right;color:var(--db-text-primary);font-weight:700">${ptsC1}/${criterios[0].max} pts</span>
+            </div>
+            <div style="margin-bottom:6px">
+                <label style="font-size:1rem;color:var(--db-text-secondary);display:block;margin-bottom:4px">
+                    Ingreso bruto anual del cliente (COP):
+                </label>
+                <div style="display:flex;align-items:center;gap:6px">
+                    <input id="sf-ingreso-bruto" type="number" min="0" class="c4-cob-input" style="max-width:240px"
+                        placeholder="Ingreso bruto anual…" value="${ingBrutoAnualActual || ''}">
+                    <span style="font-size:1rem;color:var(--db-text-muted)">COP/año</span>
+                </div>
+                <div style="font-size:1rem;color:var(--db-text-muted);margin-top:2px;font-style:italic">
+                    Para empleados: salario + comisiones + bonos + primas anuales. Para independientes: honorarios + servicios.
+                </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:1rem;color:var(--db-text-secondary);margin-top:8px">
+                <span>Cupo Art. 126: ${cop(cupo126)}</span>
+                <span>Tope global (Art. 336): ${cop(cupoGlobal)}</span>
+            </div>
+            <div style="font-size:1rem;font-weight:600;color:var(--db-text-primary);margin:4px 0">
+                Cupo efectivo: ${cop(cupoEfectivo)}
+            </div>
+            <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;margin:6px 0">
+                <div style="width:${Math.min(pctAprv, 100).toFixed(1)}%;height:100%;background:${barColor};border-radius:3px"></div>
+            </div>
+            <div style="font-size:1rem;color:var(--db-text-secondary)">${pctAprv.toFixed(1)}% aprovechado — Aportes: ${cop(aportesTotal)}/año</div>
+            ${instHtml}
+            ${cupoSinUsar > 0 ? `<div style="margin-top:6px;padding:6px 8px;background:rgba(91,160,245,0.08);border-radius:6px;font-size:1rem;color:#5ba0f5">
+                💡 Cupo sin aprovechar: ~${cop(cupoSinUsar)}/año — ahorro potencial: ~${cop(ahorroPotencial)} (est. tarifa marginal 35%)
+            </div>` : ''}
+            <div style="margin-top:6px;font-size:1rem;color:var(--db-text-muted);font-style:italic;line-height:1.4">
+                ⚠️ El cupo global de 1,340 UVT (${cop(TOPE_UVT_GLOBAL * UVT_VIGENTE)}) es compartido con todas las deducciones y rentas exentas. El cupo real puede ser menor.
+            </div>
+        </div>`;
+
+    // Radio criteria HTML
+    const radioHtml = aplicables.filter(c => c.tipo === 'radio').map(c => {
+        const savedVal = guardado[c.id] || '';
+        // C6 context block
+        const c6Ctx = c.id === 'c6' ? `<div style="font-size:1rem;color:var(--db-text-muted);line-height:1.4;margin-bottom:6px;padding:8px;background:rgba(255,255,255,0.02);border-radius:6px">
+            En Colombia existe doble tributación: la empresa paga 35% sobre utilidades, y al distribuir dividendos al socio persona natural hay tarifa progresiva adicional. Una planeación adecuada puede reducir significativamente la carga fiscal total.
+        </div>` : '';
+        const pills = c.opts.map(o => `<label class="c4-opt">
+            <input type="radio" name="sf-${c.id}" value="${o.v}" ${savedVal === o.v ? 'checked' : ''}>
+            <span class="c4-opt-lbl">${o.l}</span>
+        </label>`).join('');
+        return `<div style="padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                <span style="font-size:1rem;font-weight:600;color:var(--db-text-primary)">${c.label}</span>
+                <span style="font-size:1rem;color:var(--db-text-muted)">${c.max} pts</span>
+            </div>
+            <div style="font-size:1rem;color:var(--db-text-muted);margin-bottom:6px;font-style:italic">${c.hint}</div>
+            ${c6Ctx}
+            <div class="c4-opts">${pills}</div>
+        </div>`;
+    }).join('');
+
+    body.innerHTML = `
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:10px">
+            <div style="font-size:2rem;font-weight:700;color:${semColor}" data-sf-score>${scoreFinal.toFixed(1)}<span style="font-size:1rem;color:var(--db-text-muted)">/10</span></div>
+            <div>
+                <div style="font-size:1rem;font-weight:600;color:var(--db-text-primary)" data-sf-label>${semLabel}</div>
+                <div style="font-size:1rem;color:var(--db-text-muted)">Evaluando ${aplicables.length} de 6 criterios</div>
+            </div>
+        </div>
+        ${c1Html}
+        <div style="display:flex;flex-direction:column;gap:8px">${radioHtml}</div>
+        <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:1rem;color:var(--db-text-muted);font-style:italic">${contexto}</div>
+            <button id="sf-save-btn" style="padding:6px 14px;background:var(--db-accent,#5ba0f5);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:1rem;font-weight:600">
+                Guardar
+            </button>
+        </div>`;
+
+   // ── Recalc: read DOM state, update score display without re-rendering radios ──
+   const sfRecalc = () => {
+    // Read current ingreso from DOM
+    const ingDOM = parseFloat(document.getElementById('sf-ingreso-bruto')?.value) || 0;
+    const cupo126R     = Math.min(ingDOM * PCT_INGRESO_MAX, TOPE_UVT_126 * UVT_VIGENTE);
+    const cupoGlobalR  = Math.min(ingDOM * PCT_GLOBAL, TOPE_UVT_GLOBAL * UVT_VIGENTE);
+    const cupoEfR      = Math.min(cupo126R, cupoGlobalR);
+    const aportesR     = aportesDetectados + (parseFloat(guardado.c1_aportesManual) || 0);
+    const pctR         = cupoEfR > 0 ? Math.min((aportesR / cupoEfR) * 100, 100) : 0;
+    let ptsC1R = 0;
+    if (pctR >= 80) ptsC1R = 3;
+    else if (pctR >= 50) ptsC1R = 2;
+    else if (pctR >= 20) ptsC1R = 1;
+
+    // Read radio values from DOM
+    let ptsTotalR = ptsC1R;
+    aplicables.filter(c => c.tipo === 'radio').forEach(c => {
+        const checked = body.querySelector(`input[name="sf-${c.id}"]:checked`);
+        if (checked) {
+            const opt = c.opts.find(o => o.v === checked.value);
+            if (opt) ptsTotalR += opt.p;
+        }
+    });
+
+    const scoreR = maxPosible > 0 ? (ptsTotalR / maxPosible) * 10 : 0;
+
+    // Update score display
+    let sColor, sLabel, sCard;
+    if (scoreR >= 7)      { sColor = '#34d399'; sLabel = '🟢 Gestión fiscal sólida';         sCard = 'card-success'; }
+    else if (scoreR >= 5) { sColor = '#eab308'; sLabel = '🟡 Gestión parcial — oportunidades'; sCard = 'card-warning'; }
+    else if (scoreR >= 3) { sColor = '#f97316'; sLabel = '🟠 Gestión débil — riesgo';          sCard = 'card-warning'; }
+    else                  { sColor = '#ef4444'; sLabel = '🔴 Crítico — exposición fiscal';     sCard = 'card-danger'; }
+
+    setCardSemaphore('db-bloque-score-fiscal', sCard);
+    const scoreEl = body.querySelector('[data-sf-score]');
+    if (scoreEl) { scoreEl.textContent = scoreR.toFixed(1); scoreEl.style.color = sColor; }
+    const labelEl = body.querySelector('[data-sf-label]');
+    if (labelEl) { labelEl.textContent = sLabel; }
+};
+
+// Use event delegation on body — survives re-renders
+body.addEventListener('change', sfRecalc);
+body.addEventListener('input', (e) => { if (e.target.id === 'sf-ingreso-bruto') sfRecalc(); });
+
+document.getElementById('sf-save-btn')?.addEventListener('click', async () => {
+    const ingDOM = parseFloat(document.getElementById('sf-ingreso-bruto')?.value) || 0;
+    const cupoEfR = Math.min(
+        Math.min(ingDOM * PCT_INGRESO_MAX, TOPE_UVT_126 * UVT_VIGENTE),
+        Math.min(ingDOM * PCT_GLOBAL, TOPE_UVT_GLOBAL * UVT_VIGENTE)
+    );
+    const aportesR = aportesDetectados + (parseFloat(guardado.c1_aportesManual) || 0);
+    const pctR = cupoEfR > 0 ? Math.min((aportesR / cupoEfR) * 100, 100) : 0;
+    let ptsC1R = pctR >= 80 ? 3 : pctR >= 50 ? 2 : pctR >= 20 ? 1 : 0;
+    let ptsTotalR = ptsC1R;
+    const data = {
+        c1_ingresoBrutoAnual: ingDOM,
+        c1_aportesManual:     guardado.c1_aportesManual || 0,
+        c1_aprovechamiento:   pctR,
+        c1_cupoMaximo:        cupoEfR,
+        c1_aporteAnual:       aportesR,
+    };
+    aplicables.filter(c => c.tipo === 'radio').forEach(c => {
+        const checked = body.querySelector(`input[name="sf-${c.id}"]:checked`);
+        data[c.id] = checked ? checked.value : '';
+        if (checked) {
+            const opt = c.opts.find(o => o.v === checked.value);
+            if (opt) ptsTotalR += opt.p;
+        }
+    });
+    data.score = maxPosible > 0 ? (ptsTotalR / maxPosible) * 10 : 0;
+    data.maxPosible = maxPosible;
+    data.criteriosAplican = aplicables.length;
+    data.fecha = serverTimestamp();
+    try {
+        await updateDoc(doc(db, 'clients', selectedClientId), { scoreFiscal: data });
+        guardado = data;
+        showToast('Score fiscal guardado', 'success');
+    } catch (e) { console.error(e); showToast('Error al guardar', 'error'); }
+});
+}
+
+// ── Exposición Legal ─────────────────────────────────────────────────
+function renderBloqueExposicionLegal(activos, patrimonioCOP) {
+    const body = document.getElementById('db-exposicion-legal-body');
+    if (!body) return;
+
+    if (!activos || activos.length === 0 || patrimonioCOP <= 0) {
+        body.innerHTML = '<p class="db-legend-empty">Sin activos registrados</p>';
+        setCardSemaphore('db-bloque-exposicion-legal', 'card-neutral');
+        return;
+    }
+
+    const FUERTE   = new Set(['Trust', 'Fideicomiso', 'Fundación']);
+    const MEDIA    = new Set(['Holding', 'LLC']);
+    const LIMITADA = new Set(['Sociedad Comercial']);
+    // Propiedad Directa, Otro, vacío → sin protección
+
+    const niveles = {
+        fuerte:   { label: 'Protección Fuerte',   sub: 'Trust · Fideicomiso · Fundación', color: '#34d399', peso: 1.0, monto: 0, activos: [] },
+        media:    { label: 'Protección Media',     sub: 'Holding · LLC',                   color: '#5ba0f5', peso: 0.7, monto: 0, activos: [] },
+        limitada: { label: 'Protección Limitada',  sub: 'Sociedad Comercial',              color: '#eab308', peso: 0.3, monto: 0, activos: [] },
+        sin:      { label: 'Sin Protección',       sub: 'Propiedad Directa · Otro',        color: '#ef4444', peso: 0.0, monto: 0, activos: [] },
+    };
+
+    // Excluir Uso Personal del análisis
+    const prods = activos.filter(a => (a.category || '') !== 'Uso Personal');
+
+    prods.forEach(a => {
+        const valor  = convertirACOP(parseFloat(a.value) || 0, a.currency || 'COP');
+        const pasivo = convertirACOP(parseFloat(a.liability) || 0, a.currency || 'COP');
+        if (isNaN(valor)) return;
+        const neto = valor - (isNaN(pasivo) ? 0 : pasivo);
+        if (neto <= 0) return;
+
+        const leg  = a.legalStructure || 'Propiedad Directa';
+        const name = a.description || a.subtype || 'Activo';
+        const item = { name, leg, neto };
+
+        if (FUERTE.has(leg))        niveles.fuerte.activos.push(item);
+        else if (MEDIA.has(leg))    niveles.media.activos.push(item);
+        else if (LIMITADA.has(leg)) niveles.limitada.activos.push(item);
+        else                        niveles.sin.activos.push(item);
+    });
+
+    // Calcular montos y porcentajes
+    const totalNeto = Object.values(niveles).reduce((s, n) => s + n.activos.reduce((ss, a) => ss + a.neto, 0), 0);
+    if (totalNeto <= 0) {
+        body.innerHTML = '<p class="db-legend-empty">Sin patrimonio neto para analizar</p>';
+        setCardSemaphore('db-bloque-exposicion-legal', 'card-neutral');
+        return;
+    }
+
+    Object.values(niveles).forEach(n => {
+        n.monto = n.activos.reduce((s, a) => s + a.neto, 0);
+        n.pct   = totalNeto > 0 ? (n.monto / totalNeto) * 100 : 0;
+    });
+
+    // Score ponderado
+    const scorePond = (niveles.fuerte.pct * 1.0 + niveles.media.pct * 0.7 + niveles.limitada.pct * 0.3) / 100 * 100;
+
+    // Semáforo
+    let semColor, semLabel, cardClass;
+    if (scorePond >= 40)      { semColor = '#34d399'; semLabel = '🟢 Protección sólida';                    cardClass = 'card-success'; }
+    else if (scorePond >= 25) { semColor = '#eab308'; semLabel = '🟡 Protección parcial — en camino';       cardClass = 'card-warning'; }
+    else if (scorePond >= 10) { semColor = '#f97316'; semLabel = '🟠 Protección débil — requiere atención'; cardClass = 'card-warning'; }
+    else                      { semColor = '#ef4444'; semLabel = '🔴 Crítico — patrimonio expuesto';        cardClass = 'card-danger'; }
+
+    setCardSemaphore('db-bloque-exposicion-legal', cardClass);
+
+    // Stacked bar
+    const barSegments = ['fuerte','media','limitada','sin']
+        .filter(k => niveles[k].pct > 0)
+        .map(k => `<div style="width:${niveles[k].pct.toFixed(1)}%;background:${niveles[k].color};height:100%;border-radius:3px;min-width:2px" title="${niveles[k].label}: ${niveles[k].pct.toFixed(1)}%"></div>`)
+        .join('');
+
+    // Legend
+    const legendRows = ['fuerte','media','limitada','sin']
+        .filter(k => niveles[k].pct > 0 || k === 'sin')
+        .map(k => {
+            const n = niveles[k];
+            return `<div class="db-legend-item">
+                <span class="db-legend-dot" style="background:${n.color}"></span>
+                <span>${n.label}</span>
+                <span class="db-legend-pct">${n.pct.toFixed(1)}%</span>
+                <span style="color:var(--db-text-muted);font-size:1rem;margin-left:4px">${fmtCOP(n.monto)}</span>
+            </div>`;
+        }).join('');
+
+    // Asset list grouped by level
+    const assetGroups = ['fuerte','media','limitada','sin']
+        .filter(k => niveles[k].activos.length > 0)
+        .map(k => {
+            const n = niveles[k];
+            const rows = n.activos
+                .sort((a, b) => b.neto - a.neto)
+                .map(a => `<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 8px;font-size:1rem;color:var(--db-text-secondary)">
+                    <span>${a.name} <span style="color:var(--db-text-muted)">(${a.leg})</span></span>
+                    <span style="font-weight:600;color:var(--db-text-primary);white-space:nowrap">${fmtCOP(a.neto)}</span>
+                </div>`).join('');
+            return `<div style="margin-top:6px">
+                <div style="font-size:1rem;font-weight:600;color:${n.color};text-transform:uppercase;letter-spacing:.04em;padding:2px 0">${n.label}</div>
+                ${rows}
+            </div>`;
+        }).join('');
+
+    body.innerHTML = `
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+            <div style="font-size:2rem;font-weight:700;color:${semColor}">${scorePond.toFixed(1)}%</div>
+            <div>
+                <div style="font-size:1rem;font-weight:600;color:var(--db-text-primary)">${semLabel}</div>
+                <div style="font-size:1rem;color:var(--db-text-muted)">Score ponderado de protección legal</div>
+            </div>
+        </div>
+        <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,0.06);margin-bottom:12px">
+            ${barSegments}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
+            ${legendRows}
+        </div>
+        <details style="margin-top:4px">
+            <summary style="cursor:pointer;font-size:1rem;font-weight:600;color:var(--db-text-secondary);padding:4px 0">Ver detalle por activo</summary>
+            ${assetGroups}
+        </details>
+    `;
+
+    // Alertas: activos en propiedad directa > $500M COP
+    const alertEl  = document.getElementById('db-alert-exposicion-legal');
+    const alertMsg = document.getElementById('db-alert-exposicion-legal-msg');
+    if (alertEl && alertMsg) {
+        const grandes = niveles.sin.activos.filter(a => a.neto > 500000000);
+        if (grandes.length > 0) {
+            alertMsg.innerHTML = grandes.map(a =>
+                `⚠️ <strong>${a.name}</strong> en propiedad directa por ${fmtCOP(a.neto)} — considerar estructura de protección`
+            ).join('<br>');
+            alertEl.style.display = 'flex';
+        } else {
+            alertEl.style.display = 'none';
+        }
+    }
+}
+
 // ── Resumen de concentraciones ────────────────────────────────────────
 function renderResumenConcentraciones(d) {
     const body = document.getElementById('db-resumen-conc-body');
@@ -7254,4 +7987,1296 @@ function renderResumenConcentraciones(d) {
             + `</div>`
         ).join('');
     }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// ██  VULNERABILIDADES  (V1–V12)  — Sección completa                   ██
+// ════════════════════════════════════════════════════════════════════════
+
+async function loadVulnerabilidades() {
+    if (!selectedClientId) return;
+    const container = document.getElementById('vuln-container');
+    if (!container) return;
+    container.innerHTML = '<p class="db-legend-empty">Calculando vulnerabilidades…</p>';
+
+    try {
+        // ── 1. Cargar datos necesarios ─────────────────────────────
+        const [activos, clientSnap] = await Promise.all([
+            c4GetActivos(),
+            getDoc(doc(db, 'clients', selectedClientId))
+        ]);
+
+        const clientData  = clientSnap.exists() ? clientSnap.data() : {};
+        const gastosMes   = parseFloat(clientData.monthlyExpenses) || 0;
+        const met         = c4Metricas(activos, gastosMes);
+        met._activos      = activos;
+
+        // ── 2. Leer respuestas guardadas de las capas ──────────────
+        const resp        = clientData.evaluacion4capas || {};
+        const scoreFiscal = clientData.scoreFiscal || null;
+
+        // ── 3. Recalcular scores de capas en vivo ──────────────────
+        const scores = {};
+        ['proteccion','liquidez','crecimiento','diversificacion'].forEach(c => {
+            scores[c] = c4Score(c, resp[c] || {}, met, gastosMes, clientData);
+        });
+
+        // ── 4. Calcular vulnerabilidades ───────────────────────────
+        const met4 = c4dCalcularMetricas(activos, gastosMes, clientData);
+        const vulnerabilidades = _vulnCalcular(
+            met, resp, clientData, gastosMes, scoreFiscal, scores, activos, met4
+        );
+
+        // ── 5. Renderizar ──────────────────────────────────────────
+        _vulnRender(vulnerabilidades, container, clientData);
+
+        // ── 6. Persistir resumen en Firestore ──────────────────────
+        const resumen = {
+            criticas:      vulnerabilidades.filter(v => v.prioridad === 'critica').length,
+            altas:         vulnerabilidades.filter(v => v.prioridad === 'alta').length,
+            medias:        vulnerabilidades.filter(v => v.prioridad === 'media').length,
+            ids:           vulnerabilidades.map(v => v.id),
+            fechaCalculo:  new Date().toISOString()
+        };
+        await updateDoc(doc(db, 'clients', selectedClientId), {
+            vulnerabilidadesResumen: resumen
+        }).catch(e => console.error('Error guardando vulnerabilidades:', e));
+
+    } catch (e) {
+        console.error('Error en loadVulnerabilidades:', e);
+        container.innerHTML = '<p class="db-legend-empty">Error al calcular vulnerabilidades. Verifica que el perfil y los activos estén completos.</p>';
+    }
+}
+
+// ── Motor de cálculo V1–V12 ───────────────────────────────────────────
+function _vulnCalcular(met, resp, clientData, gastosMes, scoreFiscal, scores, activos, met4) {
+    const vuln = [];
+    const patriCOP   = met.patriCOP || 0;
+    const _fmt       = (n) => new Intl.NumberFormat('es-CO', {
+        style: 'currency', currency: 'COP',
+        minimumFractionDigits: 0, maximumFractionDigits: 0
+    }).format(n);
+
+    // ── V1 — Seguro de vida ────────────────────────────────────────
+    const cobVida = (parseFloat(resp.proteccion?.cobVidaTrad) || 0)
+        + (parseFloat(resp.proteccion?.sumAseguradaSkandiaCP) || 0);
+    const reqVida = c1ReqVida(met, gastosMes, clientData,
+        resp.proteccion?.ingPasivosAjuste,
+        resp.proteccion?.pasivosNoCubAjuste);
+    const gapVida   = Math.max(0, reqVida - cobVida);
+    const pctCobVida = reqVida > 0 ? cobVida / reqVida * 100 : 0;
+
+    if (cobVida === 0 && reqVida > 0) {
+        vuln.push({
+            id: 'V1', prioridad: 'critica',
+            titulo: 'Sin seguro de vida',
+            impacto: `Si el cliente fallece hoy, la familia enfrenta un déficit de ${_fmt(reqVida)} para sostener su nivel de vida durante 10 años.`,
+            metrica: `Cobertura requerida: ${_fmt(reqVida)} | Actual: $0`,
+            accion: 'Contratar seguro de vida de forma urgente.',
+            automatico: resp.proteccion ? true : false
+        });
+    } else if (pctCobVida < 50 && reqVida > 0) {
+        vuln.push({
+            id: 'V1', prioridad: 'critica',
+            titulo: 'Cobertura de vida insuficiente — gap crítico',
+            impacto: `La cobertura actual cubre solo el ${pctCobVida.toFixed(0)}% de lo requerido. Gap: ${_fmt(gapVida)}.`,
+            metrica: `Requerida: ${_fmt(reqVida)} | Actual: ${_fmt(cobVida)} | Gap: ${_fmt(gapVida)}`,
+            accion: 'Aumentar la cobertura de vida para cerrar el gap.',
+            automatico: true
+        });
+    }
+
+    // ── V2 — Dependencia de ingresos activos ───────────────────────
+    const ingActivo = parseFloat(clientData.monthlyActiveIncome) || 0;
+    const ingPasivo = met.ingPasivoTotalCOP || 0;
+    const totalIng  = ingActivo + ingPasivo;
+    const pctActivo = totalIng > 0 ? ingActivo / totalIng * 100 : 100;
+
+    if (pctActivo > 90) {
+        vuln.push({
+            id: 'V2', prioridad: 'critica',
+            titulo: 'Dependencia crítica de ingresos activos',
+            impacto: `El ${pctActivo.toFixed(0)}% de los ingresos depende de la capacidad laboral del cliente. Una enfermedad, accidente o pérdida de empleo eliminaría prácticamente todos los ingresos.`,
+            metrica: `Ingresos activos: ${_fmt(ingActivo)}/mes (${pctActivo.toFixed(0)}%) | Pasivos: ${_fmt(ingPasivo)}/mes (${(100 - pctActivo).toFixed(0)}%)`,
+            accion: 'Construir fuentes de ingreso pasivo. Meta: ingresos pasivos > 30% del total.',
+            automatico: true
+        });
+    } else if (pctActivo > 70) {
+        vuln.push({
+            id: 'V2', prioridad: 'alta',
+            titulo: 'Alta dependencia de ingresos activos',
+            impacto: `El ${pctActivo.toFixed(0)}% de los ingresos requiere trabajo activo del cliente.`,
+            metrica: `Activos: ${pctActivo.toFixed(0)}% | Pasivos: ${(100 - pctActivo).toFixed(0)}%`,
+            accion: 'Diversificar hacia ingresos pasivos.',
+            automatico: true
+        });
+    }
+
+    // ── V3 — Concentración de moneda (COP) ─────────────────────────
+    const activosProd = activos.filter(a => a.category !== 'Uso Personal');
+    const sumaPorMoneda = {};
+    activosProd.forEach(a => {
+        const mon  = a.currency || 'COP';
+        const vCOP = convertirACOP(parseFloat(a.value) || 0, mon);
+        const pCOP = convertirACOP(parseFloat(a.liability) || 0, mon);
+        const neto = vCOP - (isNaN(pCOP) ? 0 : pCOP);
+        sumaPorMoneda[mon] = (sumaPorMoneda[mon] || 0) + neto;
+    });
+    const pctCOP = patriCOP > 0 ? (sumaPorMoneda['COP'] || 0) / patriCOP * 100 : 0;
+
+    if (pctCOP > 85) {
+        vuln.push({
+            id: 'V3', prioridad: 'critica',
+            titulo: 'Concentración crítica en COP',
+            impacto: `El ${pctCOP.toFixed(0)}% del patrimonio está en pesos colombianos. Una devaluación del COP deteriora directamente el poder adquisitivo real.`,
+            metrica: `COP: ${pctCOP.toFixed(1)}% | Meta: máximo 60%`,
+            accion: 'Diversificar hacia USD o EUR mediante activos internacionales.',
+            automatico: true
+        });
+    } else if (pctCOP > 70) {
+        vuln.push({
+            id: 'V3', prioridad: 'media',
+            titulo: 'Alta exposición a COP',
+            impacto: `El ${pctCOP.toFixed(0)}% del patrimonio está en pesos. Considerar aumentar exposición en monedas duras.`,
+            metrica: `COP: ${pctCOP.toFixed(1)}% | Meta: máximo 60%`,
+            accion: 'Incrementar activos en USD o EUR.',
+            automatico: true
+        });
+    }
+
+    // ── V4 — Concentración geográfica ──────────────────────────────
+    const sumaPorPais = {};
+    activosProd.forEach(a => {
+        const pais = (a.location || 'Colombia').trim() || 'Colombia';
+        const vCOP = convertirACOP(parseFloat(a.value) || 0, a.currency || 'COP');
+        const pCOP = convertirACOP(parseFloat(a.liability) || 0, a.currency || 'COP');
+        const neto = vCOP - (isNaN(pCOP) ? 0 : pCOP);
+        sumaPorPais[pais] = (sumaPorPais[pais] || 0) + neto;
+    });
+    const numPaises     = Object.keys(sumaPorPais).length;
+    const paisMaxPct    = patriCOP > 0
+        ? Math.max(...Object.values(sumaPorPais).map(v => v / patriCOP * 100)) : 100;
+    const paisMaxNombre = Object.entries(sumaPorPais)
+        .sort((a, b) => b[1] - a[1])[0]?.[0] || 'Colombia';
+
+    if (numPaises <= 1) {
+        vuln.push({
+            id: 'V4', prioridad: 'alta',
+            titulo: 'Todo el patrimonio en una sola jurisdicción',
+            impacto: `El 100% del patrimonio está en ${paisMaxNombre}. Un cambio regulatorio, político o tributario afecta todo simultáneamente.`,
+            metrica: `Países distintos: ${numPaises} | Meta: mínimo 2`,
+            accion: 'Diversificar hacia al menos una jurisdicción estable (USA, Panamá, etc.).',
+            automatico: true
+        });
+    } else if (paisMaxPct > 80) {
+        vuln.push({
+            id: 'V4', prioridad: 'media',
+            titulo: 'Alta concentración geográfica',
+            impacto: `El ${paisMaxPct.toFixed(0)}% del patrimonio está en ${paisMaxNombre}.`,
+            metrica: `Concentración: ${paisMaxPct.toFixed(1)}% en ${paisMaxNombre} | Meta: máximo 70%`,
+            accion: 'Diversificar geográficamente.',
+            automatico: true
+        });
+    }
+
+    // ── V5 — Sin protección estructural ────────────────────────────
+    const pctProtegido   = met.pctProtegido || 0;
+    const pctSinProtec   = 100 - pctProtegido;
+    const ESTRUC_REALES  = new Set(['Trust', 'Fideicomiso', 'Fundación', 'Holding', 'LLC']);
+    const activosSinProtGrandes = activos
+        .filter(a => {
+            const leg  = a.legalStructure || 'Propiedad Directa';
+            const vCOP = convertirACOP(parseFloat(a.value) || 0, a.currency || 'COP');
+            const pCOP = convertirACOP(parseFloat(a.liability) || 0, a.currency || 'COP');
+            const neto = vCOP - (isNaN(pCOP) ? 0 : pCOP);
+            return !ESTRUC_REALES.has(leg) && neto > 500_000_000 && a.category !== 'Uso Personal';
+        })
+        .map(a => a.description || a.subtype || 'Activo');
+
+    if (pctSinProtec > 70) {
+        vuln.push({
+            id: 'V5', prioridad: 'alta',
+            titulo: 'Patrimonio desprotegido estructuralmente',
+            impacto: `El ${pctSinProtec.toFixed(0)}% del patrimonio está en propiedad directa — expuesto a demandas, divorcios y sucesiones sin protección.`,
+            metrica: `Sin protección: ${pctSinProtec.toFixed(1)}% | Meta: mínimo 60% bajo estructura`,
+            detalle: activosSinProtGrandes.length > 0
+                ? `Activos >$500M sin estructura: ${activosSinProtGrandes.join(', ')}`
+                : '',
+            accion: 'Implementar fideicomiso, trust u holding para proteger activos significativos.',
+            automatico: true
+        });
+    }
+
+    // ── V6 — Exposición fiscal ─────────────────────────────────────
+    const scoreFiscalValor = clientData?.scoreFiscal?.score;
+    const scoreFiscalCompletado = scoreFiscalValor !== undefined
+        && scoreFiscalValor !== null
+        && !isNaN(parseFloat(scoreFiscalValor));
+
+    if (!scoreFiscalCompletado) {
+        vuln.push({
+            id: 'V6', prioridad: 'media',
+            titulo: 'Score fiscal no evaluado',
+            impacto: 'No se ha completado la evaluación fiscal. Puede haber exposiciones no identificadas.',
+            metrica: 'Score fiscal: pendiente',
+            accion: 'Completar la evaluación fiscal en el Dashboard.',
+            automatico: false
+        });
+    } else if (parseFloat(scoreFiscalValor) < 3) {
+        vuln.push({
+            id: 'V6', prioridad: 'critica',
+            titulo: 'Exposición fiscal crítica',
+            impacto: 'Gestión fiscal deficiente con posibles incumplimientos que generan riesgo de sanciones.',
+            metrica: `Score fiscal: ${parseFloat(scoreFiscalValor).toFixed(1)}/10 | Umbral crítico: <3`,
+            accion: 'Regularizar obligaciones fiscales de forma urgente con asesor especializado.',
+            automatico: true
+        });
+    } else if (parseFloat(scoreFiscalValor) < 5) {
+        vuln.push({
+            id: 'V6', prioridad: 'alta',
+            titulo: 'Gestión fiscal débil',
+            impacto: 'Oportunidades de optimización fiscal no aprovechadas y posibles riesgos de cumplimiento.',
+            metrica: `Score fiscal: ${parseFloat(scoreFiscalValor).toFixed(1)}/10`,
+            accion: 'Revisar optimización de cupo Art. 126 y cumplimiento de obligaciones internacionales.',
+            automatico: true
+        });
+    }
+
+    // ── V7 — Sin testamento ────────────────────────────────────────
+    const testamento = resp.proteccion?.planificacionSucesoria?.testamento;
+    const patriSignificativo = patriCOP > 1_000_000_000;
+
+    if (!testamento || testamento === 'no_tiene') {
+        if (patriSignificativo) {
+            vuln.push({
+                id: 'V7', prioridad: 'alta',
+                titulo: 'Sin testamento con patrimonio significativo',
+                impacto: `Patrimonio de ${_fmt(patriCOP)} sin testamento. La sucesión intestada puede tardar años y generar conflictos familiares.`,
+                metrica: `Patrimonio: ${_fmt(patriCOP)} | Umbral: >$1.000M COP`,
+                accion: 'Elaborar testamento notarial con distribución clara del patrimonio.',
+                automatico: false
+            });
+        }
+    } else if (testamento === 'desactualizado') {
+        vuln.push({
+            id: 'V7', prioridad: 'media',
+            titulo: 'Testamento desactualizado',
+            impacto: 'El testamento puede no reflejar la situación patrimonial o familiar actual.',
+            metrica: 'Testamento: desactualizado',
+            accion: 'Actualizar el testamento con la composición patrimonial y familiar actual.',
+            automatico: false
+        });
+    }
+
+    // ── V8 — Liquidez insuficiente ─────────────────────────────────
+    const tipoIngS   = (clientData.tipoIngresosActivos || '').toLowerCase();
+    const metaMeses  = tipoIngS === 'empleado' ? 6 : 9;
+    const defMensual = Math.max(0, gastosMes - ingPasivo);
+    const mesesCub   = defMensual > 0 ? (met.altaLiqCOP || 0) / defMensual : 99;
+    const gapLiq     = Math.max(0, defMensual * metaMeses - (met.altaLiqCOP || 0));
+
+    if (mesesCub < 3) {
+        vuln.push({
+            id: 'V8', prioridad: 'critica',
+            titulo: 'Liquidez crítica',
+            impacto: `Solo ${mesesCub.toFixed(1)} meses de cobertura. Sin ingresos, no puede cubrir gastos básicos en menos de 3 meses.`,
+            metrica: `Actual: ${mesesCub.toFixed(1)} meses | Meta: ${metaMeses} meses | Gap: ${_fmt(gapLiq)}`,
+            accion: `Construir fondo de emergencia de ${_fmt(defMensual * metaMeses)} (${metaMeses} meses de déficit neto).`,
+            automatico: true
+        });
+    } else if (mesesCub < metaMeses) {
+        vuln.push({
+            id: 'V8', prioridad: 'alta',
+            titulo: 'Liquidez por debajo de la meta',
+            impacto: `${mesesCub.toFixed(1)} meses de cobertura vs meta de ${metaMeses} meses para perfil ${tipoIngS || 'del cliente'}.`,
+            metrica: `Actual: ${mesesCub.toFixed(1)} meses | Meta: ${metaMeses} | Gap: ${_fmt(gapLiq)}`,
+            accion: `Aumentar liquidez en ${_fmt(gapLiq)} para alcanzar la meta.`,
+            automatico: true
+        });
+    }
+
+    // ── V9 — Capa crítica < 4/10 ──────────────────────────────────
+    const nombresCapas = {
+        proteccion: 'Protección', liquidez: 'Liquidez',
+        crecimiento: 'Crecimiento', diversificacion: 'Diversificación'
+    };
+    Object.entries(scores).forEach(([key, score]) => {
+        if (score === null || score === undefined) return;
+        if (score < 4) {
+            vuln.push({
+                id: 'V9', prioridad: 'alta',
+                titulo: `Capa de ${nombresCapas[key]} crítica`,
+                impacto: `La capa de ${nombresCapas[key]} tiene un score de ${score.toFixed(1)}/10 — por debajo del umbral mínimo de 4/10.`,
+                metrica: `Score ${nombresCapas[key]}: ${score.toFixed(1)}/10 | Umbral: 4/10`,
+                accion: `Revisar y mejorar los criterios de la capa de ${nombresCapas[key]}.`,
+                automatico: true
+            });
+        }
+    });
+
+    // ── V10 — Portafolio desalineado ──────────────────────────────
+    const valorRiesgoAlto = met.valorRiesgoAlto || 0;
+    const pctRiesgoAlto   = patriCOP > 0 ? valorRiesgoAlto / patriCOP * 100 : 0;
+    const perfil    = (clientData.riskProfile || '').toUpperCase();
+    const horizonte = clientData.investmentHorizon || '';
+    let desalineado  = false;
+    let motivoDesalin = '';
+
+    if (perfil === 'CONSERVADOR' && pctRiesgoAlto >= 20) {
+        desalineado = true;
+        motivoDesalin = `Perfil conservador con ${pctRiesgoAlto.toFixed(0)}% en activos de riesgo alto (máx recomendado: 20%)`;
+    } else if (perfil === 'MODERADO' && pctRiesgoAlto > 50) {
+        desalineado = true;
+        motivoDesalin = `Perfil moderado con ${pctRiesgoAlto.toFixed(0)}% en activos de riesgo alto (máx recomendado: 50%)`;
+    } else if (perfil === 'MODERADO' && pctRiesgoAlto < 20) {
+        desalineado = true;
+        motivoDesalin = `Perfil moderado con solo ${pctRiesgoAlto.toFixed(0)}% en activos de riesgo alto (mín recomendado: 20%)`;
+    } else if (perfil === 'AGRESIVO' && pctRiesgoAlto <= 50) {
+        desalineado = true;
+        motivoDesalin = `Perfil agresivo con solo ${pctRiesgoAlto.toFixed(0)}% en activos de riesgo alto (mín recomendado: 50%)`;
+    }
+    if (horizonte.toLowerCase().includes('corto') && pctRiesgoAlto > 30) {
+        desalineado = true;
+        motivoDesalin = `Horizonte corto con ${pctRiesgoAlto.toFixed(0)}% en activos de riesgo alto — exposición excesiva dado el plazo`;
+    }
+
+    if (desalineado) {
+        vuln.push({
+            id: 'V10', prioridad: 'media',
+            titulo: 'Portafolio desalineado con perfil de riesgo',
+            impacto: motivoDesalin,
+            metrica: `Perfil: ${perfil} | Horizonte: ${horizonte} | % riesgo alto: ${pctRiesgoAlto.toFixed(0)}%`,
+            accion: 'Rebalancear el portafolio para alinearlo con el perfil y horizonte del cliente.',
+            automatico: true
+        });
+    }
+
+    // ── V11 — Dependencia de negocio único ─────────────────────────
+    const activosEmp = met.activosEmpresariales || [];
+    if (activosEmp.length > 0 && patriCOP > 0) {
+        const negMax = activosEmp.reduce((max, e) => e.neto > max.neto ? e : max, activosEmp[0]);
+        const pctNeg = negMax.neto / patriCOP * 100;
+        if (pctNeg > 60) {
+            vuln.push({
+                id: 'V11', prioridad: 'alta',
+                titulo: 'Dependencia crítica de negocio único',
+                impacto: `El ${pctNeg.toFixed(0)}% del patrimonio depende de "${negMax.name}". Un evento adverso destruiría la mayor parte del patrimonio.`,
+                metrica: `${negMax.name}: ${pctNeg.toFixed(1)}% del patrimonio | Meta: máximo 40%`,
+                accion: 'Diversificar el patrimonio fuera del negocio principal. Considerar seguro de persona clave.',
+                automatico: true
+            });
+        } else if (pctNeg > 40) {
+            vuln.push({
+                id: 'V11', prioridad: 'media',
+                titulo: 'Alta concentración en negocio único',
+                impacto: `El ${pctNeg.toFixed(0)}% del patrimonio está concentrado en "${negMax.name}".`,
+                metrica: `${negMax.name}: ${pctNeg.toFixed(1)}% | Meta: máximo 40%`,
+                accion: 'Reducir la concentración diversificando hacia otros activos.',
+                automatico: true
+            });
+        }
+    }
+
+    // ── V12 — Sin seguro de invalidez ──────────────────────────────
+    const cobInv    = parseFloat(resp.proteccion?.cobInvalidez) || 0;
+    const reqInv    = c1ReqInvalidez(gastosMes, clientData, met);
+    const pctCobInv = reqInv > 0 ? cobInv / reqInv * 100 : 0;
+
+    if (cobInv === 0 && reqInv > 0) {
+        vuln.push({
+            id: 'V12', prioridad: 'alta',
+            titulo: 'Sin seguro de invalidez',
+            impacto: `Sin cobertura de invalidez. Si el cliente queda incapacitado, pierde el ${pctActivo.toFixed(0)}% de sus ingresos sin respaldo.`,
+            metrica: `Cobertura requerida: ${_fmt(reqInv)} | Actual: $0`,
+            accion: 'Contratar seguro de invalidez o FPV con cobertura ITP.',
+            automatico: resp.proteccion ? true : false
+        });
+    } else if (pctCobInv < 30 && reqInv > 0) {
+        vuln.push({
+            id: 'V12', prioridad: 'media',
+            titulo: 'Cobertura de invalidez muy insuficiente',
+            impacto: `La cobertura actual cubre solo el ${pctCobInv.toFixed(0)}% de lo requerido.`,
+            metrica: `Requerida: ${_fmt(reqInv)} | Actual: ${_fmt(cobInv)} | Gap: ${_fmt(reqInv - cobInv)}`,
+            accion: 'Aumentar la cobertura de invalidez.',
+            automatico: true
+        });
+    }
+
+    // ── V_SEC — Concentración sectorial ──────────────────────────────
+    const actConSector   = met4?.actConSector   || [];
+    const numSectoresV   = met4?.numSectores    || 0;
+    const secConcMaxV    = met4?.sectorConcMax  || 0;
+    const nombreSecMaxV  = met4?.sectorConcNombre?.nombre || '';
+
+    if (actConSector.length > 0) {
+        if (numSectoresV === 1 || secConcMaxV > 60) {
+            vuln.push({
+                id: 'V_SEC', prioridad: 'alta',
+                titulo: 'Alta concentración sectorial',
+                impacto: `El ${secConcMaxV.toFixed(0)}% del portafolio de inversión está concentrado en el sector ${nombreSecMaxV}. Una crisis en ese sector afecta directamente el valor del portafolio.`,
+                metrica: `Sector ${nombreSecMaxV}: ${secConcMaxV.toFixed(1)}% | Meta: ningún sector >40%`,
+                accion: `Diversificar el portafolio hacia otros sectores para reducir la exposición a ${nombreSecMaxV}.`,
+                automatico: true
+            });
+        } else if (secConcMaxV > 40) {
+            vuln.push({
+                id: 'V_SEC', prioridad: 'media',
+                titulo: 'Concentración sectorial moderada',
+                impacto: `El ${secConcMaxV.toFixed(0)}% del portafolio está en ${nombreSecMaxV}.`,
+                metrica: `Sector ${nombreSecMaxV}: ${secConcMaxV.toFixed(1)}% | Meta: máximo 40%`,
+                accion: `Considerar diversificar hacia otros sectores.`,
+                automatico: true
+            });
+        }
+    }
+
+    // ── V_DEUDA — Apalancamiento crítico ─────────────────────────────
+    const activosBrutosCOP_v = (met.pasivosTotalCOP || 0) + patriCOP;
+    const ratioApal_v = activosBrutosCOP_v > 0
+        ? (met.pasivosTotalCOP || 0) / activosBrutosCOP_v * 100 : 0;
+
+    if (ratioApal_v > 50) {
+        vuln.push({
+            id: 'V_DEUDA', prioridad: 'critica',
+            titulo: 'Apalancamiento crítico',
+            impacto: `El ${ratioApal_v.toFixed(0)}% de los activos está financiado con deuda. Una caída en el valor de los activos o una subida de tasas puede destruir el patrimonio neto rápidamente.`,
+            metrica: `Ratio deuda/activos: ${ratioApal_v.toFixed(1)}% | Meta: <30% | Crítico: >50%`,
+            accion: 'Reducir deuda de forma urgente antes de hacer nuevas inversiones.',
+            automatico: true
+        });
+    } else if (ratioApal_v > 30) {
+        vuln.push({
+            id: 'V_DEUDA', prioridad: 'media',
+            titulo: 'Apalancamiento alto',
+            impacto: `El ${ratioApal_v.toFixed(0)}% de los activos está financiado con deuda.`,
+            metrica: `Ratio deuda/activos: ${ratioApal_v.toFixed(1)}% | Meta: <30%`,
+            accion: 'Monitorear y reducir progresivamente.',
+            automatico: true
+        });
+    }
+
+    // ── Ordenar: crítica → alta → media ────────────────────────────
+    const orden = { critica: 0, alta: 1, media: 2 };
+    return vuln.sort((a, b) => orden[a.prioridad] - orden[b.prioridad]);
+}
+
+// ── Renderizado de vulnerabilidades ───────────────────────────────────
+function _vulnRender(vuln, container, clientData) {
+    const nombre = clientData.nombreCliente || clientData.name || 'el cliente';
+
+    const criticas = vuln.filter(v => v.prioridad === 'critica');
+    const altas    = vuln.filter(v => v.prioridad === 'alta');
+    const medias   = vuln.filter(v => v.prioridad === 'media');
+
+    const colorPrioridad = {
+        critica: { bg: '#fef2f2', borde: '#ef4444', texto: '#dc2626', etq: '🔴 Crítica' },
+        alta:    { bg: '#fff7ed', borde: '#f97316', texto: '#ea580c', etq: '🟠 Alta' },
+        media:   { bg: '#fefce8', borde: '#eab308', texto: '#ca8a04', etq: '🟡 Media' },
+    };
+
+    const renderCard = (v) => {
+        const c = colorPrioridad[v.prioridad];
+        return `
+            <div class="vuln-card" style="background:${c.bg};border:1.5px solid ${c.borde};
+                border-radius:10px;padding:18px 20px;margin-bottom:12px">
+                <div style="display:flex;justify-content:space-between;
+                    align-items:flex-start;margin-bottom:8px;gap:12px">
+                    <div style="font-size:1.05rem;font-weight:700;color:#1a1e2e">
+                        ${v.id} — ${v.titulo}
+                    </div>
+                    <span style="font-size:.85rem;font-weight:600;color:${c.texto};
+                        background:${c.borde}22;padding:2px 10px;border-radius:20px;
+                        white-space:nowrap;flex-shrink:0">${c.etq}</span>
+                </div>
+                <div style="font-size:.92rem;color:#374151;margin-bottom:6px;
+                    line-height:1.5">${v.impacto}</div>
+                <div style="font-size:.85rem;color:#6b7280;margin-bottom:8px;
+                    font-family:'SF Mono',Menlo,monospace;background:rgba(0,0,0,.04);
+                    padding:6px 10px;border-radius:6px;line-height:1.6;
+                    word-break:break-word">${v.metrica}</div>
+                ${v.detalle ? `<div style="font-size:.85rem;color:#6b7280;
+                    margin-bottom:8px">📋 ${v.detalle}</div>` : ''}
+                <div style="display:flex;justify-content:space-between;
+                    align-items:center;margin-top:10px;gap:12px;flex-wrap:wrap">
+                    <div style="font-size:.88rem;color:#374151;line-height:1.4">
+                        💡 <strong>Acción:</strong> ${v.accion}
+                    </div>
+                    ${!v.automatico ? `<span style="font-size:.78rem;
+                        color:#9ca3af;white-space:nowrap;flex-shrink:0">
+                        ⚠️ Requiere completar evaluación</span>` : ''}
+                </div>
+            </div>`;
+    };
+
+    // ── Sin vulnerabilidades ──
+    if (vuln.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center;padding:48px 24px">
+                <div style="font-size:2.5rem;margin-bottom:12px">✅</div>
+                <div style="font-size:1.1rem;font-weight:600;color:#0d7a4f">
+                    Sin vulnerabilidades críticas detectadas
+                </div>
+                <div style="font-size:.9rem;color:#6b7280;margin-top:6px">
+                    El patrimonio de ${nombre} no presenta riesgos
+                    críticos en este momento.
+                </div>
+            </div>`;
+        return;
+    }
+
+    // ── Resumen ejecutivo + cards ──
+    container.innerHTML = `
+        <!-- Resumen ejecutivo -->
+        <div class="vuln-resumen" style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap">
+            ${criticas.length > 0 ? `
+                <div style="background:#fef2f2;border:1px solid #ef4444;
+                    border-radius:8px;padding:12px 20px;text-align:center;min-width:80px">
+                    <div style="font-size:1.6rem;font-weight:700;color:#dc2626">${criticas.length}</div>
+                    <div style="font-size:.8rem;color:#dc2626;font-weight:600">CRÍTICAS</div>
+                </div>` : ''}
+            ${altas.length > 0 ? `
+                <div style="background:#fff7ed;border:1px solid #f97316;
+                    border-radius:8px;padding:12px 20px;text-align:center;min-width:80px">
+                    <div style="font-size:1.6rem;font-weight:700;color:#ea580c">${altas.length}</div>
+                    <div style="font-size:.8rem;color:#ea580c;font-weight:600">ALTAS</div>
+                </div>` : ''}
+            ${medias.length > 0 ? `
+                <div style="background:#fefce8;border:1px solid #eab308;
+                    border-radius:8px;padding:12px 20px;text-align:center;min-width:80px">
+                    <div style="font-size:1.6rem;font-weight:700;color:#ca8a04">${medias.length}</div>
+                    <div style="font-size:.8rem;color:#ca8a04;font-weight:600">MEDIAS</div>
+                </div>` : ''}
+            <div style="background:#f0fdf4;border:1px solid #86efac;
+                border-radius:8px;padding:12px 20px;display:flex;
+                align-items:center;gap:8px;flex:1;min-width:200px">
+                <div style="font-size:.9rem;color:#166534;line-height:1.4">
+                    ${criticas.length > 0
+                        ? `<strong>Acción inmediata requerida.</strong> Hay ${criticas.length} vulnerabilidad${criticas.length > 1 ? 'es' : ''} crítica${criticas.length > 1 ? 's' : ''} que deben atenderse antes de cualquier otra decisión patrimonial.`
+                        : altas.length > 0
+                            ? `No hay críticas pero hay ${altas.length} vulnerabilidad${altas.length > 1 ? 'es' : ''} de prioridad alta que atender en los próximos 3 meses.`
+                            : `Solo vulnerabilidades de prioridad media. El patrimonio está en buena forma general.`
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Vulnerabilidades críticas -->
+        ${criticas.length > 0 ? `
+            <div class="vuln-section-header" style="font-size:.75rem;font-weight:700;letter-spacing:.08em;
+                text-transform:uppercase;color:#dc2626;margin-bottom:10px;
+                padding-bottom:4px;border-bottom:2px solid #ef4444">
+                🔴 Críticas — Acción inmediata
+            </div>
+            ${criticas.map(renderCard).join('')}
+        ` : ''}
+
+        <!-- Vulnerabilidades altas -->
+        ${altas.length > 0 ? `
+            <div class="vuln-section-header" style="font-size:.75rem;font-weight:700;letter-spacing:.08em;
+                text-transform:uppercase;color:#ea580c;margin-bottom:10px;
+                ${criticas.length > 0 ? 'margin-top:20px;' : ''}
+                padding-bottom:4px;border-bottom:2px solid #f97316">
+                🟠 Altas — Atender en 3 meses
+            </div>
+            ${altas.map(renderCard).join('')}
+        ` : ''}
+
+        <!-- Vulnerabilidades medias -->
+        ${medias.length > 0 ? `
+            <div class="vuln-section-header" style="font-size:.75rem;font-weight:700;letter-spacing:.08em;
+                text-transform:uppercase;color:#ca8a04;margin-bottom:10px;
+                ${(criticas.length > 0 || altas.length > 0) ? 'margin-top:20px;' : ''}
+                padding-bottom:4px;border-bottom:2px solid #eab308">
+                🟡 Medias — Planificar
+            </div>
+            ${medias.map(renderCard).join('')}
+        ` : ''}
+
+        <!-- Nota sobre datos incompletos -->
+        ${vuln.some(v => !v.automatico) ? `
+            <div style="margin-top:16px;padding:12px 16px;background:#f8fafc;
+                border:1px solid #e2e8f0;border-radius:8px;
+                font-size:.83rem;color:#64748b">
+                ⚠️ Algunas vulnerabilidades requieren que se complete la
+                evaluación de capas o el score fiscal para calcularse
+                con exactitud. Las marcadas con
+                "Requiere completar evaluación" pueden cambiar
+                cuando se ingresen los datos faltantes.
+            </div>
+        ` : ''}
+    `;
+}
+
+
+
+// ════════════════════════════════════════════════════════════════════════
+// ██  ARQUITECTURA IDEAL v2  — Metodología completa                    ██
+// ════════════════════════════════════════════════════════════════════════
+
+// ── BLOQUE 2: Etapa de vida ──────────────────────────────────────────
+function _arqEtapaVida(edad, avanceIF) {
+    if (edad < 35 && avanceIF < 20)  return 'ACUMULACION_TEMPRANA';
+    if (edad < 35 && avanceIF >= 20) return 'ACUMULACION_ACELERADA';
+    if (edad >= 35 && edad < 50 && avanceIF < 50)  return 'CONSOLIDACION';
+    if (edad >= 35 && edad < 50 && avanceIF >= 50) return 'CONSOLIDACION_AVANZADA';
+    if (edad >= 50 && edad < 60 && avanceIF < 70)  return 'PRE_INDEPENDENCIA';
+    if (edad >= 50 && edad < 60 && avanceIF >= 70) return 'TRANSICION';
+    if (edad >= 60 && avanceIF >= 80) return 'PRESERVACION';
+    if (edad >= 60 && avanceIF < 80)  return 'PRESERVACION_CON_GAP';
+    return 'CONSOLIDACION';
+}
+
+const _ARQ_ETAPA_LABELS = {
+    ACUMULACION_TEMPRANA:  'Acumulación temprana',
+    ACUMULACION_ACELERADA: 'Acumulación acelerada',
+    CONSOLIDACION:         'Consolidación',
+    CONSOLIDACION_AVANZADA:'Consolidación avanzada',
+    PRE_INDEPENDENCIA:     'Pre-independencia',
+    TRANSICION:            'Transición',
+    PRESERVACION:          'Preservación',
+    PRESERVACION_CON_GAP:  'Preservación con gap'
+};
+
+// ── BLOQUE 3A: Distribución base por tipo de activo ──────────────────
+const _ARQ_DIST_BASE = {
+    CONSERVADOR: {
+        Corto:  { liquidez:{min:15,max:25,ideal:20}, rentaFija:{min:40,max:55,ideal:45}, inmueblesProd:{min:15,max:25,ideal:20}, rentaVariable:{min:0,max:10,ideal:5}, alternativo:{min:0,max:5,ideal:2} },
+        Medio:  { liquidez:{min:12,max:20,ideal:15}, rentaFija:{min:35,max:45,ideal:40}, inmueblesProd:{min:18,max:28,ideal:22}, rentaVariable:{min:5,max:15,ideal:10}, alternativo:{min:0,max:8,ideal:3} },
+        Largo:  { liquidez:{min:10,max:15,ideal:12}, rentaFija:{min:25,max:40,ideal:32}, inmueblesProd:{min:20,max:30,ideal:25}, rentaVariable:{min:10,max:25,ideal:18}, alternativo:{min:2,max:10,ideal:5} }
+    },
+    MODERADO: {
+        Corto:  { liquidez:{min:12,max:20,ideal:15}, rentaFija:{min:30,max:40,ideal:35}, inmueblesProd:{min:18,max:28,ideal:22}, rentaVariable:{min:10,max:20,ideal:15}, alternativo:{min:2,max:10,ideal:5} },
+        Medio:  { liquidez:{min:10,max:15,ideal:12}, rentaFija:{min:20,max:35,ideal:28}, inmueblesProd:{min:18,max:28,ideal:22}, rentaVariable:{min:18,max:30,ideal:25}, alternativo:{min:5,max:12,ideal:8} },
+        Largo:  { liquidez:{min:8,max:12,ideal:10}, rentaFija:{min:15,max:25,ideal:20}, inmueblesProd:{min:15,max:25,ideal:20}, rentaVariable:{min:25,max:40,ideal:32}, alternativo:{min:8,max:15,ideal:10} }
+    },
+    AGRESIVO: {
+        Corto:  { liquidez:{min:10,max:15,ideal:12}, rentaFija:{min:15,max:30,ideal:22}, inmueblesProd:{min:15,max:25,ideal:20}, rentaVariable:{min:25,max:35,ideal:30}, alternativo:{min:8,max:15,ideal:10} },
+        Medio:  { liquidez:{min:8,max:12,ideal:10}, rentaFija:{min:10,max:20,ideal:15}, inmueblesProd:{min:12,max:22,ideal:18}, rentaVariable:{min:30,max:45,ideal:38}, alternativo:{min:10,max:18,ideal:14} },
+        Largo:  { liquidez:{min:5,max:10,ideal:8}, rentaFija:{min:5,max:15,ideal:10}, inmueblesProd:{min:10,max:22,ideal:15}, rentaVariable:{min:35,max:50,ideal:42}, alternativo:{min:12,max:20,ideal:16} }
+    }
+};
+
+// ── BLOQUE 3B: Ajustadores dinámicos ─────────────────────────────────
+function _arqAjustarDist(base, clientData, metricas) {
+    const a = JSON.parse(JSON.stringify(base));
+    const ndep = clientData.numeroDependientes || 0;
+    if (ndep >= 3) { a.liquidez.ideal += 3; a.liquidez.min += 2; a.alternativo.ideal -= 2; a.alternativo.max -= 2; }
+    else if (ndep >= 1) { a.liquidez.ideal += 1; a.alternativo.ideal -= 1; }
+
+    const tipo = clientData.tipoIngresosActivos || '';
+    if (['independiente','empresario','mixto'].includes(tipo)) {
+        a.liquidez.ideal += 2; a.liquidez.min += 2;
+        a.rentaFija.ideal -= 1; a.rentaVariable.ideal -= 1;
+    }
+
+    const costoCP = (clientData.objetivosCliente?.cortoPlayzo || []).reduce((s,o) => s + (o.costoEstimado||0), 0);
+    const pctCP = metricas.patrimonioTotalCOP > 0 ? costoCP / metricas.patrimonioTotalCOP * 100 : 0;
+    if (pctCP > 30) { a.liquidez.ideal += 5; a.rentaVariable.ideal -= 3; a.alternativo.ideal -= 2; }
+    else if (pctCP > 15) { a.liquidez.ideal += 2; a.rentaVariable.ideal -= 1; a.alternativo.ideal -= 1; }
+
+    const etapa = metricas.etapaVida;
+    if (etapa === 'ACUMULACION_TEMPRANA') { a.rentaVariable.ideal += 5; a.rentaFija.ideal -= 3; a.liquidez.ideal -= 2; }
+    if (etapa === 'PRESERVACION' || etapa === 'PRESERVACION_CON_GAP') { a.rentaFija.ideal += 5; a.liquidez.ideal += 3; a.rentaVariable.ideal -= 5; a.alternativo.ideal -= 3; }
+    if (etapa === 'TRANSICION') { a.rentaFija.ideal += 3; a.rentaVariable.ideal -= 2; a.alternativo.ideal -= 1; }
+
+    const vulnIds = (metricas.vulnerabilidades || []).map(v => typeof v === 'string' ? v : v.id);
+    if (vulnIds.includes('V8')) { a.liquidez.min = Math.max(a.liquidez.min, 15); a.liquidez.ideal = Math.max(a.liquidez.ideal, 18); }
+    if (vulnIds.includes('V2')) { a.inmueblesProd.ideal += 3; a.rentaFija.ideal += 2; }
+    if (vulnIds.includes('V_DEUDA')) { a.liquidez.ideal += 3; a.rentaVariable.ideal -= 3; }
+
+    const pctReinv = metricas.pctIngresosReinvertidos || 0;
+    if (pctReinv >= 50) { a.rentaVariable.ideal += 3; a.rentaFija.ideal -= 3; }
+
+    return _arqNormalizarDist(a);
+}
+
+function _arqNormalizarDist(dist) {
+    const cats = ['liquidez','rentaFija','inmueblesProd','rentaVariable','alternativo'];
+    const suma = cats.reduce((s,c) => s + dist[c].ideal, 0);
+    if (suma !== 100 && suma > 0) {
+        const factor = 100 / suma;
+        cats.forEach(c => { dist[c].ideal = Math.round(dist[c].ideal*factor); dist[c].min = Math.round(dist[c].min*factor); dist[c].max = Math.round(dist[c].max*factor); });
+        const diff = 100 - cats.reduce((s,c) => s + dist[c].ideal, 0);
+        dist.rentaFija.ideal += diff;
+    }
+    return dist;
+}
+
+// ── BLOQUE 3C: Mapeo de activos a categorías ─────────────────────────
+function _arqClasificar(a) {
+    const cat = a.category || '', sub = a.subtype || '';
+    if (cat === 'Uso Personal') return 'usoPersonal';
+    if (sub === 'Casa o apartamento donde vivo') return 'usoPersonal';
+    if (sub === 'Seguro de pensión con ahorro') return 'ahorroNoRetirable';
+    const liq = new Set(['Cuenta bancaria corriente o ahorros','Cuenta de alto rendimiento','Efectivo en caja','Fondo de liquidez o Fiducia']);
+    if (liq.has(sub)) return 'liquidez';
+    const rf = new Set(['CDT','Bonos o títulos de deuda','Cuenta AFC','Fondo de pensiones voluntarias FPV']);
+    if (rf.has(sub)) return 'rentaFija';
+    if (sub === 'Fondo de inversión colectiva FIC') return 'rentaFija';
+    if (cat === 'Inmueble') return (a.generatesIncome && (parseFloat(a.monthlyIncome)||0) > 0) ? 'inmueblesProd' : 'alternativo';
+    const rv = new Set(['Acciones en bolsa','ETF o fondo de inversión internacional','REIT','Cartera gestionada por terceros']);
+    if (rv.has(sub)) return 'rentaVariable';
+    if (cat === 'Empresarial') return 'rentaVariable';
+    if (cat === 'Alternativo') return 'alternativo';
+    return 'rentaVariable';
+}
+
+// ── BLOQUE 3D: Brechas por tipo de activo ────────────────────────────
+function _arqBrechasTipo(activos, distIdeal, patriCOP) {
+    const montoCOP = a => { const v = convertirACOP(parseFloat(a.value)||0,a.currency||'COP'); const p = convertirACOP(parseFloat(a.liability)||0,a.currency||'COP'); return isNaN(v)?0:v-(isNaN(p)?0:p); };
+    const excl = activos.filter(a => ['usoPersonal','ahorroNoRetirable'].includes(_arqClasificar(a)));
+    const exclCOP = excl.reduce((s,a) => s + montoCOP(a), 0);
+    const patriInv = patriCOP - exclCOP;
+    const cats = ['liquidez','rentaFija','inmueblesProd','rentaVariable','alternativo'];
+    const r = {};
+    cats.forEach(cat => {
+        const actualCOP = activos.filter(a => _arqClasificar(a) === cat).reduce((s,a) => s + montoCOP(a), 0);
+        const actualPct = patriInv > 0 ? actualCOP / patriInv * 100 : 0;
+        const idealCOP = patriInv * distIdeal[cat].ideal / 100;
+        const minCOP = patriInv * distIdeal[cat].min / 100;
+        const maxCOP = patriInv * distIdeal[cat].max / 100;
+        let estado = 'OPTIMO';
+        if (actualCOP < minCOP) estado = 'DEFICIT';
+        else if (actualCOP > maxCOP) estado = 'EXCESO';
+        r[cat] = { actualCOP: Math.round(actualCOP), actualPct: Math.round(actualPct*10)/10, idealPct: distIdeal[cat].ideal, idealCOP: Math.round(idealCOP), minPct: distIdeal[cat].min, maxPct: distIdeal[cat].max, gapCOP: Math.round(idealCOP - actualCOP), estado };
+    });
+    r._meta = { patrimonioInvertible: patriInv, excluidosCOP: exclCOP };
+    return r;
+}
+
+// ── BLOQUE 4: Distribución moneda ────────────────────────────────────
+function _arqEscala(patriCOP) {
+    const M = patriCOP / 1_000_000;
+    if (M < 500) return 'ESCALA_BAJA'; if (M < 2000) return 'ESCALA_MEDIA'; if (M < 5000) return 'ESCALA_ALTA'; return 'ESCALA_MUY_ALTA';
+}
+
+const _ARQ_DIST_MONEDA = {
+    ESCALA_BAJA:     { COP:{min:50,max:75,ideal:65}, USD:{min:20,max:40,ideal:30}, EUR:{min:0,max:15,ideal:5} },
+    ESCALA_MEDIA:    { COP:{min:40,max:60,ideal:50}, USD:{min:25,max:45,ideal:35}, EUR:{min:5,max:20,ideal:10} },
+    ESCALA_ALTA:     { COP:{min:30,max:50,ideal:40}, USD:{min:30,max:50,ideal:38}, EUR:{min:10,max:25,ideal:15} },
+    ESCALA_MUY_ALTA: { COP:{min:25,max:45,ideal:35}, USD:{min:30,max:45,ideal:35}, EUR:{min:10,max:25,ideal:18} }
+};
+
+function _arqAjustarMoneda(base, clientData, metricas) {
+    const a = JSON.parse(JSON.stringify(base));
+    const vulnIds = (metricas.vulnerabilidades||[]).map(v => typeof v === 'string' ? v : v.id);
+    if (clientData.paisResidencia !== 'Colombia') { a.COP.ideal -= 10; a.USD.ideal += 10; }
+    if (vulnIds.includes('V3')) { a.COP.max = Math.min(a.COP.max,60); a.COP.ideal = Math.min(a.COP.ideal,55); a.USD.min = Math.max(a.USD.min,30); }
+    return a;
+}
+
+function _arqBrechasMoneda(activos, distMoneda, patriCOP) {
+    const porM = {};
+    activos.filter(a => a.category !== 'Uso Personal').forEach(a => {
+        const mon = a.currency||'COP'; const v = convertirACOP(parseFloat(a.value)||0,mon); const p = convertirACOP(parseFloat(a.liability)||0,mon);
+        if (isNaN(v)) return; porM[mon] = (porM[mon]||0) + v - (isNaN(p)?0:p);
+    });
+    const patriProd = Object.values(porM).reduce((s,v) => s + v, 0);
+    const r = {};
+    Object.entries(distMoneda).forEach(([mon,rangos]) => {
+        if (mon === 'OTRA') return;
+        const actualCOP = porM[mon]||0; const actualPct = patriProd > 0 ? actualCOP/patriProd*100 : 0;
+        const idealCOP = patriProd * rangos.ideal / 100;
+        let estado = 'OPTIMO'; if (actualPct < rangos.min) estado = 'DEFICIT'; if (actualPct > rangos.max) estado = 'EXCESO';
+        r[mon] = { actualCOP:Math.round(actualCOP), actualPct:Math.round(actualPct*10)/10, idealPct:rangos.ideal, idealCOP:Math.round(idealCOP), minPct:rangos.min, maxPct:rangos.max, gapCOP:Math.round(idealCOP-actualCOP), estado };
+    });
+    return r;
+}
+
+// ── BLOQUE 5: Distribución geográfica ────────────────────────────────
+const _ARQ_GEO_REGLAS = {
+    ESCALA_BAJA:     { minJurisd:1, maxConc:80, meta:'Considerar al menos 1 activo internacional' },
+    ESCALA_MEDIA:    { minJurisd:2, maxConc:65, meta:'Mínimo 2 países, al menos 1 jurisdicción estable' },
+    ESCALA_ALTA:     { minJurisd:3, maxConc:55, meta:'Mínimo 3 jurisdicciones, ningún país >55%' },
+    ESCALA_MUY_ALTA: { minJurisd:3, maxConc:45, meta:'Mínimo 3 jurisdicciones, ningún país >45%' }
+};
+
+function _arqGeoIdeal(patriCOP, paisRes) {
+    const escala = _arqEscala(patriCOP);
+    const dist = {
+        ESCALA_BAJA:     { Colombia:{ideal:75,max:85},'Estados Unidos':{ideal:20,min:10},Otro:{ideal:5,min:0} },
+        ESCALA_MEDIA:    { Colombia:{ideal:55,max:65},'Estados Unidos':{ideal:30,min:20},Internacional:{ideal:15,min:5} },
+        ESCALA_ALTA:     { Colombia:{ideal:45,max:55},'Estados Unidos':{ideal:30,min:20},Europa:{ideal:15,min:10},Otro:{ideal:10,min:0} },
+        ESCALA_MUY_ALTA: { Colombia:{ideal:35,max:45},'Estados Unidos':{ideal:30,min:20},Europa:{ideal:20,min:10},'Asia/Caribe':{ideal:15,min:5} }
+    };
+    return { reglas: _ARQ_GEO_REGLAS[escala], distribucion: dist[escala] };
+}
+
+// ── BLOQUE 6: Protección ideal ───────────────────────────────────────
+const _ARQ_PROT_IDEAL = {
+    ESCALA_BAJA:     { pctMin:0,  estruc:[], prioridad:'Seguros de vida e invalidez adecuados' },
+    ESCALA_MEDIA:    { pctMin:20, estruc:['SAS separada','LLC (si hay activos en USA)'], prioridad:'Separar patrimonio empresarial del personal' },
+    ESCALA_ALTA:     { pctMin:40, estruc:['Holding','LLC','Fideicomiso'], prioridad:'Estructurar al menos 40% del patrimonio' },
+    ESCALA_MUY_ALTA: { pctMin:60, estruc:['Trust','Fideicomiso','Fundación','Holding','LLC'], prioridad:'Protección multinivel con Trust o Fundación' }
+};
+
+function _arqBrechaProteccion(activos, patriCOP) {
+    const escala = _arqEscala(patriCOP); const meta = _ARQ_PROT_IDEAL[escala];
+    const niveles = { fuerte:{e:new Set(['Trust','Fideicomiso','Fundación']),p:1.0}, media:{e:new Set(['Holding','LLC']),p:0.7}, limitada:{e:new Set(['Sociedad Comercial']),p:0.3}, sin:{e:new Set(['Propiedad Directa','Otro','']),p:0.0} };
+    const prods = activos.filter(a => a.category !== 'Uso Personal');
+    const neto = a => { const v = convertirACOP(parseFloat(a.value)||0,a.currency||'COP'); const p = convertirACOP(parseFloat(a.liability)||0,a.currency||'COP'); return isNaN(v)?0:v-(isNaN(p)?0:p); };
+    const totalProd = prods.reduce((s,a) => s + neto(a), 0);
+    const porN = { fuerte:0, media:0, limitada:0, sin:0 };
+    prods.forEach(a => { const leg = a.legalStructure||'Propiedad Directa'; const n = neto(a); for (const [k,cfg] of Object.entries(niveles)) { if (cfg.e.has(leg)) { porN[k] += n; break; } } });
+    const pctProt = totalProd > 0 ? (porN.fuerte + porN.media) / totalProd * 100 : 0;
+    const expuestos = prods.filter(a => ['Propiedad Directa','Otro',''].includes(a.legalStructure||'Propiedad Directa') && neto(a) > 500_000_000);
+    return {
+        pctProtegidoActual: Math.round(pctProt*10)/10, pctProtegidoMeta: meta.pctMin,
+        gap: Math.max(0, meta.pctMin - pctProt),
+        montoAProteger: Math.round(Math.max(0, totalProd * meta.pctMin/100 - porN.fuerte - porN.media)),
+        estructurasRecomendadas: meta.estruc, prioridad: meta.prioridad,
+        activosExpuestos: expuestos.map(a => ({ nombre: a.description||a.subtype, valor: neto(a) })),
+        detalle: { fuerte: totalProd>0?Math.round(porN.fuerte/totalProd*1000)/10:0, media: totalProd>0?Math.round(porN.media/totalProd*1000)/10:0, limitada: totalProd>0?Math.round(porN.limitada/totalProd*1000)/10:0, sin: totalProd>0?Math.round(porN.sin/totalProd*1000)/10:0 }
+    };
+}
+
+// ── BLOQUE 7: Metas ingreso pasivo ───────────────────────────────────
+function _arqMetasIngreso(gastosMes, ingPasivoActual, activos) {
+    const ingParaGastos = activos.filter(a => a.generatesIncome && (parseFloat(a.monthlyIncome)||0) > 0)
+        .reduce((s,a) => { const t = parseFloat(a.monthlyIncome)||0; return s + t * (1 - (parseFloat(a.incomeReinvestPct)||0)/100); }, 0);
+    const fuentesActuales = activos.filter(a => a.generatesIncome && (parseFloat(a.monthlyIncome)||0) > 0)
+        .map(a => ({ nombre: a.description||a.subtype, ingreso: parseFloat(a.monthlyIncome)||0, pctGasto: gastosMes > 0 ? (parseFloat(a.monthlyIncome)||0)/gastosMes*100 : 0, reinvierte: (a.incomeDestination||'gasto') !== 'gasto' }))
+        .sort((a,b) => b.ingreso - a.ingreso);
+    const m5 = gastosMes*0.40, m10 = gastosMes*0.70, m15 = gastosMes;
+    return {
+        gastosMensuales: gastosMes, ingresoParaGastos: Math.round(ingParaGastos),
+        pctActualVsGastos: gastosMes > 0 ? Math.round(ingParaGastos/gastosMes*1000)/10 : 0,
+        metas: { anos5:{meta:Math.round(m5),gap:Math.round(Math.max(0,m5-ingParaGastos)),pct:40}, anos10:{meta:Math.round(m10),gap:Math.round(Math.max(0,m10-ingParaGastos)),pct:70}, anos15:{meta:Math.round(m15),gap:Math.round(Math.max(0,m15-ingParaGastos)),pct:100} },
+        fuentesActuales
+    };
+}
+
+// ── BLOQUE 8: Optimización fiscal ────────────────────────────────────
+function _arqFiscal(clientData, activos) {
+    const ingBrutoAnual = (clientData.monthlyActiveIncome||0) * 12;
+    const cupo126 = Math.min(ingBrutoAnual*0.30, 3800*UVT_VIGENTE);
+    const cupoGlobal = Math.min(ingBrutoAnual*0.40, 1340*UVT_VIGENTE);
+    const cupoEfec = Math.min(cupo126, cupoGlobal);
+    const SUBS_FISCAL = new Set(['Fondo de pensiones voluntarias FPV','Seguro de pensión con ahorro','Cuenta AFC']);
+    const aportesAnuales = activos.filter(a => SUBS_FISCAL.has(a.subtype) && (parseFloat(a.primaMensual)||0) > 0).reduce((s,a) => s + (parseFloat(a.primaMensual)||0)*12, 0);
+    const cupoNoUtil = Math.max(0, cupoEfec - aportesAnuales);
+    const pctAprov = cupoEfec > 0 ? aportesAnuales / cupoEfec * 100 : 0;
+    const tarifa = ingBrutoAnual > 1700*UVT_VIGENTE ? 0.35 : 0.28;
+    return { cupoEfectivoAnual: Math.round(cupoEfec), aportesActuales: Math.round(aportesAnuales), cupoNoUtilizado: Math.round(cupoNoUtil), pctAprovechado: Math.round(pctAprov*10)/10, ahorroAnualPotencial: Math.round(cupoNoUtil*tarifa) };
+}
+
+// ── BLOQUE 9: Seguros ideales ────────────────────────────────────────
+function _arqSeguroVida(clientData, activos) {
+    const HEREDAN = new Set(['Casa o apartamento arrendado','Local bodega u oficina comercial','Acciones en bolsa','ETF o fondo de inversión internacional','Fondo de inversión colectiva FIC','Bonos o títulos de deuda','REIT','CDT','Cuenta de alto rendimiento']);
+    const ingPasSob = activos.filter(a => a.generatesIncome && HEREDAN.has(a.subtype)).reduce((s,a) => s + (parseFloat(a.monthlyIncome)||0), 0);
+    const gastosMes = clientData.monthlyExpenses||0;
+    const aReemp = Math.max(0, gastosMes - ingPasSob);
+    const pasHer = activos.filter(a => (parseFloat(a.liability)||0) > 0 && a.seguroVidaDeudor !== 'si' && ['Empresarial','Alternativo','Inmueble'].includes(a.category)).reduce((s,a) => s + convertirACOP(parseFloat(a.liability)||0,a.currency||'COP'), 0);
+    const cobReq = aReemp*12*10 + pasHer + (clientData.gastosEducacionHijos||0);
+    const cobTrad = parseFloat(clientData.evaluacion4capas?.proteccion?.cobVidaTrad)||0;
+    const cobSeg = activos.filter(a => a.subtype === 'Seguro de pensión con ahorro').reduce((s,a) => s + (parseFloat(a.valorAseguradoActual)||0), 0);
+    const cobActual = cobTrad + cobSeg;
+    return { coberturaRequerida: Math.round(cobReq), coberturaActual: Math.round(cobActual), gap: Math.round(Math.max(0,cobReq-cobActual)), pctCubierto: cobReq > 0 ? Math.round(cobActual/cobReq*1000)/10 : 100 };
+}
+
+function _arqSeguroInvalidez(clientData, activos) {
+    const anosP = Math.max(0, 65 - (clientData.edad||0));
+    const HEREDAN = new Set(['Casa o apartamento arrendado','Local bodega u oficina comercial','Acciones en bolsa','ETF o fondo de inversión internacional','Fondo de inversión colectiva FIC','Bonos o títulos de deuda','REIT','CDT','Cuenta de alto rendimiento']);
+    const ingPasSob = activos.filter(a => a.generatesIncome && HEREDAN.has(a.subtype)).reduce((s,a) => s + (parseFloat(a.monthlyIncome)||0), 0);
+    const aReemp = Math.max(0, (clientData.monthlyActiveIncome||0) - ingPasSob);
+    const cobReq = aReemp * 12 * anosP;
+    const cobTrad = parseFloat(clientData.evaluacion4capas?.proteccion?.cobInvalidez)||0;
+    const cobITP = activos.filter(a => a.subtype === 'Seguro de pensión con ahorro' && a.incluyeITP).reduce((s,a) => s + (parseFloat(a.valorAseguradoITP)||0), 0);
+    return { coberturaRequerida: Math.round(cobReq), coberturaActual: Math.round(cobTrad+cobITP), gap: Math.round(Math.max(0,cobReq-cobTrad-cobITP)), anosProductivos: anosP };
+}
+
+// ── BLOQUE 10: Fondo emergencia ideal ────────────────────────────────
+function _arqFondoEmergencia(clientData, metricas) {
+    const tipo = clientData.tipoIngresosActivos||'';
+    let metaM = ['independiente','empresario','mixto'].includes(tipo) ? 9 : 6;
+    if ((clientData.numeroDependientes||0) >= 3) metaM += 2;
+    const ingPG = metricas.ingPasivoTotalCOP||0;
+    const defM = Math.max(0, (clientData.monthlyExpenses||0) - ingPG);
+    const metaCOP = defM * metaM;
+    const liqAlta = metricas.altaLiqCOP||0;
+    const mesesAct = defM > 0 ? liqAlta / defM : 99;
+    return { metaMeses: metaM, metaFondoCOP: Math.round(metaCOP), liquidezActual: Math.round(liqAlta), mesesCubiertos: Math.round(mesesAct*10)/10, gapCOP: Math.round(Math.max(0,metaCOP-liqAlta)), deficitMensual: Math.round(defM), estado: mesesAct >= metaM ? 'OPTIMO' : mesesAct >= 3 ? 'PARCIAL' : 'CRITICO' };
+}
+
+// ── BLOQUE 11: Deuda ideal ───────────────────────────────────────────
+const _ARQ_APAL = {
+    ESCALA_BAJA:{maxR:40,ideal:25,critico:60}, ESCALA_MEDIA:{maxR:35,ideal:20,critico:50},
+    ESCALA_ALTA:{maxR:30,ideal:15,critico:45}, ESCALA_MUY_ALTA:{maxR:25,ideal:10,critico:40}
+};
+
+function _arqBrechaDeuda(activos, activosBrutos, pasivosTot, patriCOP) {
+    const escala = _arqEscala(patriCOP); const meta = _ARQ_APAL[escala];
+    const ratioAct = activosBrutos > 0 ? pasivosTot / activosBrutos * 100 : 0;
+    let dProd=0,dViv=0,dImprod=0;
+    activos.forEach(a => { const pas = convertirACOP(parseFloat(a.liability)||0,a.currency||'COP'); if (isNaN(pas)||pas<=0) return; if (a.generatesIncome && (parseFloat(a.monthlyIncome)||0) > 0) dProd += pas; else if (a.subtype === 'Casa o apartamento donde vivo') dViv += pas; else dImprod += pas; });
+    return {
+        ratioActual: Math.round(ratioAct*10)/10, ratioMeta: meta.ideal, ratioMaximo: meta.maxR, ratioCritico: meta.critico,
+        estado: ratioAct <= meta.maxR ? 'OPTIMO' : ratioAct <= meta.critico ? 'ALTO' : 'CRITICO',
+        deudaProductiva: Math.round(dProd), deudaVivienda: Math.round(dViv), deudaImproductiva: Math.round(dImprod),
+        pctImproductiva: pasivosTot > 0 ? Math.round(dImprod/pasivosTot*1000)/10 : 0
+    };
+}
+
+// ── BLOQUE 13: Score de alineación ───────────────────────────────────
+function _arqScoreAlineacion(brechas) {
+    let p = 100;
+    const cats = ['liquidez','rentaFija','inmueblesProd','rentaVariable','alternativo'];
+    cats.forEach(c => { const b = brechas.tipoActivo[c]; if (!b || b.estado === 'OPTIMO') return; p -= Math.min(Math.abs(b.actualPct - b.idealPct)*0.8, 10); });
+    Object.values(brechas.moneda||{}).forEach(b => { if (b.estado !== 'OPTIMO') p -= Math.min(Math.abs(b.actualPct - b.idealPct)*0.5, 8); });
+    if (brechas.proteccion?.gap > 0) p -= Math.min(brechas.proteccion.gap*0.3, 10);
+    if (brechas.fondoEmergencia.estado === 'CRITICO') p -= 10; else if (brechas.fondoEmergencia.estado === 'PARCIAL') p -= 5;
+    if ((brechas.seguroVida?.pctCubierto||100) < 50) p -= 8; else if ((brechas.seguroVida?.pctCubierto||100) < 100) p -= 4;
+    if ((brechas.seguroInvalidez?.gap||0) > 0) p -= 5;
+    if ((brechas.fiscal?.pctAprovechado||100) < 50) p -= 5;
+    if (brechas.deuda?.estado === 'CRITICO') p -= 10; else if (brechas.deuda?.estado === 'ALTO') p -= 5;
+    if ((brechas.deuda?.pctImproductiva||0) > 30) p -= 5;
+    return Math.max(0, Math.round(p));
+}
+
+// ── BLOQUE 12: Función maestra ───────────────────────────────────────
+function _arqCalcularV2(clientData, activos, met, met4) {
+    const gastosMes = clientData.monthlyExpenses || 0;
+    const patriCOP  = met.patriCOP || 0;
+    const portProd  = met.portafolioProductivoCOP || calcularValorPortafolioProductivoCOP(activos);
+    const numeroMagico = gastosMes * 300;
+    const avanceIF  = numeroMagico > 0 ? portProd / numeroMagico * 100 : 0;
+
+    // Métricas enriquecidas para los ajustadores
+    const metricas = {
+        patrimonioTotalCOP: patriCOP,
+        portafolioProductivoCOP: portProd,
+        ingPasivoTotalCOP: met.ingPasivoTotalCOP || 0,
+        altaLiqCOP: met.altaLiqCOP || 0,
+        activosBrutosCOP: met.pasivosTotalCOP + patriCOP,
+        pasivosTotalCOP: met.pasivosTotalCOP || 0,
+        avanceIF, numeroMagico,
+        vulnerabilidades: (clientData.vulnerabilidadesResumen?.ids || []),
+        pctIngresosReinvertidos: 0, etapaVida: ''
+    };
+
+    // % reinversión
+    const ingBruto = activos.filter(a => a.generatesIncome && (parseFloat(a.monthlyIncome)||0)>0).reduce((s,a) => s+(parseFloat(a.monthlyIncome)||0), 0);
+    const ingReinv = activos.filter(a => a.generatesIncome && (parseFloat(a.monthlyIncome)||0)>0).reduce((s,a) => s+(parseFloat(a.monthlyIncome)||0)*(parseFloat(a.incomeReinvestPct)||0)/100, 0);
+    metricas.pctIngresosReinvertidos = ingBruto > 0 ? ingReinv/ingBruto*100 : 0;
+
+    // Etapa de vida
+    metricas.etapaVida = _arqEtapaVida(clientData.edad || 0, avanceIF);
+    const escala = _arqEscala(patriCOP);
+
+    // Distribución tipo activo
+    const horizonte = clientData.investmentHorizon || 'Largo';
+    const perfil = (clientData.riskProfile || 'MODERADO').toUpperCase();
+    const hMap = { 'Corto (<2 años)':'Corto', 'Medio (2-5 años)':'Medio', 'Largo (>5 años)':'Largo' };
+    const hNorm = hMap[horizonte] || horizonte.split(' ')[0] || 'Largo';
+    const distBase = (_ARQ_DIST_BASE[perfil] || _ARQ_DIST_BASE.MODERADO)[hNorm] || _ARQ_DIST_BASE.MODERADO.Largo;
+    const distAjustada = _arqAjustarDist(distBase, clientData, metricas);
+    const brechasTipo = _arqBrechasTipo(activos, distAjustada, patriCOP);
+
+    // Distribución moneda
+    const distMonBase = _ARQ_DIST_MONEDA[escala] || _ARQ_DIST_MONEDA.ESCALA_MEDIA;
+    const distMoneda = _arqAjustarMoneda(distMonBase, clientData, metricas);
+    const brechasMoneda = _arqBrechasMoneda(activos, distMoneda, patriCOP);
+
+    // Geográfica
+    const geoIdeal = _arqGeoIdeal(patriCOP, clientData.paisResidencia);
+
+    // Protección
+    const brechasProteccion = _arqBrechaProteccion(activos, patriCOP);
+
+    // Seguros
+    const seguroVida = _arqSeguroVida(clientData, activos);
+    const seguroInvalidez = _arqSeguroInvalidez(clientData, activos);
+
+    // Fondo emergencia
+    const fondoEmergencia = _arqFondoEmergencia(clientData, metricas);
+
+    // Metas ingreso
+    const metasIngreso = _arqMetasIngreso(gastosMes, met.ingPasivoTotalCOP||0, activos);
+
+    // Fiscal
+    const fiscal = _arqFiscal(clientData, activos);
+
+    // Deuda
+    const brechasDeuda = _arqBrechaDeuda(activos, metricas.activosBrutosCOP, metricas.pasivosTotalCOP, patriCOP);
+
+    const brechas = { tipoActivo: brechasTipo, moneda: brechasMoneda, geografica: geoIdeal, proteccion: brechasProteccion, fondoEmergencia, seguroVida, seguroInvalidez, metasIngreso, fiscal, deuda: brechasDeuda };
+    const scoreAlineacion = _arqScoreAlineacion(brechas);
+
+    return {
+        etapaVida: metricas.etapaVida, escalaPatrimonio: escala,
+        perfil, horizonte: hNorm, avanceIF: Math.round(avanceIF*10)/10,
+        numeroMagico: Math.round(numeroMagico), portafolioProductivo: portProd,
+        patriCOP, gastosMes,
+        distribucionIdeal: { tipoActivo: distAjustada, moneda: distMoneda, geografica: geoIdeal.distribucion, reglasGeo: geoIdeal.reglas },
+        brechas, scoreAlineacion,
+        capacidadAhorro: Math.max(0, (clientData.monthlyActiveIncome||0) + (met.ingPasivoTotalCOP||0) - gastosMes)
+    };
+}
+
+// ── Función principal ────────────────────────────────────────────────
+async function loadArquitecturaIdeal() {
+    if (!selectedClientId) return;
+    const container = document.getElementById('arq-container');
+    if (!container) return;
+    container.innerHTML = '<p class="db-legend-empty">Calculando arquitectura ideal…</p>';
+
+    try {
+        const [activos, clientSnap] = await Promise.all([c4GetActivos(), getDoc(doc(db, 'clients', selectedClientId))]);
+        const clientData = clientSnap.exists() ? clientSnap.data() : {};
+        const gastosMes = parseFloat(clientData.monthlyExpenses)||0;
+        const met = c4Metricas(activos, gastosMes);
+        met._activos = activos;
+        met.portafolioProductivoCOP = calcularValorPortafolioProductivoCOP(activos);
+        const met4 = c4dCalcularMetricas(activos, gastosMes, clientData);
+
+        const arq = _arqCalcularV2(clientData, activos, met, met4);
+        _arqRenderV2(arq, container, clientData);
+
+        // Persistir
+        await updateDoc(doc(db, 'clients', selectedClientId), {
+            arquitecturaIdeal: {
+                scoreAlineacion: arq.scoreAlineacion,
+                etapaVida: arq.etapaVida,
+                escalaPatrimonio: arq.escalaPatrimonio,
+                fechaCalculo: new Date().toISOString()
+            }
+        }).catch(e => console.error('Error guardando arquitectura:', e));
+
+    } catch (e) {
+        console.error('Error en loadArquitecturaIdeal:', e);
+        container.innerHTML = '<p class="db-legend-empty">Error al calcular la arquitectura ideal.</p>';
+    }
+}
+
+// ── Renderizado v2 ───────────────────────────────────────────────────
+function _arqRenderV2(d, container, cd) {
+    const nombre = cd.nombreCliente || cd.name || 'el cliente';
+    const f$ = n => fmtCOP(n);
+    const fP = n => (n||0).toFixed(1) + '%';
+    const sc = d.scoreAlineacion;
+    const scColor = sc >= 80 ? '#00c896' : sc >= 60 ? '#f5a623' : sc >= 40 ? '#f97316' : '#ff4d6d';
+    const scLabel = sc >= 80 ? '✅ Bien alineado' : sc >= 60 ? '🟡 Alineación moderada' : sc >= 40 ? '🟠 Brechas significativas' : '🔴 Requiere acción urgente';
+
+    const CAT_LABELS = { liquidez:'Liquidez', rentaFija:'Renta Fija', inmueblesProd:'Inmuebles Productivos', rentaVariable:'Renta Variable', alternativo:'Alternativo' };
+    const CAT_COLORS = { liquidez:'#5ba0f5', rentaFija:'#00c896', inmueblesProd:'#f5a623', rentaVariable:'#a78bfa', alternativo:'#f97316' };
+    const EST_BADGE  = { DEFICIT:'<span style="color:#ff4d6d;font-weight:600">▼ Déficit</span>', OPTIMO:'<span style="color:#00c896;font-weight:600">✓ Óptimo</span>', EXCESO:'<span style="color:#f5a623;font-weight:600">▲ Exceso</span>' };
+
+    // ── B1: Cabecera ────────────────────────────────────────────────
+    const bloqueCabecera = `
+        <div style="background:#141720;border:1px solid #1e2235;border-radius:12px;padding:20px 24px;margin-bottom:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;width:100%;box-sizing:border-box">
+            <div style="text-align:center;min-width:80px">
+                <div style="font-size:2rem;font-weight:700;color:${scColor}">${sc}</div>
+                <div style="font-size:.7rem;color:#4a4f64;text-transform:uppercase;letter-spacing:.06em">Alineación</div>
+            </div>
+            <div style="flex:1;min-width:200px">
+                <div style="font-size:1rem;font-weight:600;color:#f0f2ff">${scLabel}</div>
+                <div style="font-size:.88rem;color:#8b90a0;margin-top:2px">
+                    ${_ARQ_ETAPA_LABELS[d.etapaVida]||d.etapaVida} · Perfil ${d.perfil} · Horizonte ${d.horizonte} · ${d.escalaPatrimonio.replace('ESCALA_','').replace('_',' ')}
+                </div>
+                <div style="font-size:.82rem;color:#4a4f64;margin-top:4px">
+                    Patrimonio: ${f$(d.patriCOP)} · Portafolio productivo: ${f$(d.portafolioProductivo)} · Avance IF: ${fP(d.avanceIF)}
+                </div>
+            </div>
+        </div>`;
+
+    // ── B2: Distribución tipo activo ─────────────────────────────────
+    const cats = ['liquidez','rentaFija','inmueblesProd','rentaVariable','alternativo'];
+    const filasTA = cats.map(c => {
+        const b = d.brechas.tipoActivo[c]; if (!b) return '';
+        return `<div style="display:grid;grid-template-columns:170px 1fr 80px 80px 80px 120px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:.88rem">
+            <div style="font-weight:600;color:#f0f2ff">${CAT_LABELS[c]}</div>
+            <div style="position:relative;height:8px;background:rgba(255,255,255,0.06);border-radius:4px">
+                <div style="position:absolute;height:100%;background:${CAT_COLORS[c]}22;left:${b.minPct}%;width:${b.maxPct-b.minPct}%;border-radius:4px"></div>
+                <div style="position:absolute;height:100%;background:${CAT_COLORS[c]};width:${Math.min(b.actualPct,100)}%;border-radius:4px;min-width:2px"></div>
+                <div style="position:absolute;top:-2px;left:${Math.min(b.idealPct,100)}%;width:2px;height:12px;background:#f0f2ff;border-radius:1px" title="Ideal ${b.idealPct}%"></div>
+            </div>
+            <div style="text-align:right;color:#8b90a0">${fP(b.actualPct)}</div>
+            <div style="text-align:right;color:#f0f2ff;font-weight:600">${b.idealPct}%</div>
+            <div style="text-align:right;color:${b.gapCOP > 0 ? '#00c896' : b.gapCOP < 0 ? '#ff4d6d' : '#8b90a0'}">${f$(Math.abs(b.gapCOP))}</div>
+            <div style="text-align:center">${EST_BADGE[b.estado]}</div>
+        </div>`;
+    }).join('');
+
+    const bloqueTipoActivo = `
+        <div style="background:#141720;border:1px solid #1e2235;border-radius:12px;padding:20px 24px;margin-bottom:16px;width:100%;box-sizing:border-box">
+            <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4a4f64;margin-bottom:12px">📊 Distribución ideal por tipo de activo</div>
+            <div style="display:grid;grid-template-columns:170px 1fr 80px 80px 80px 120px;gap:10px;margin-bottom:6px;font-size:.72rem;color:#4a4f64;text-transform:uppercase">
+                <div>Categoría</div><div>Rango (min–máx) y actual</div><div style="text-align:right">Actual</div><div style="text-align:right">Ideal</div><div style="text-align:right">Gap $</div><div style="text-align:center">Estado</div>
+            </div>
+            ${filasTA}
+            <div style="font-size:.78rem;color:#4a4f64;margin-top:8px">Patrimonio invertible: ${f$(d.brechas.tipoActivo._meta?.patrimonioInvertible||0)} (excl. uso personal y ahorro no retirable)</div>
+        </div>`;
+
+    // ── B3: Distribución moneda ──────────────────────────────────────
+    const monedas = Object.entries(d.brechas.moneda);
+    const filasM = monedas.map(([mon,b]) => {
+        const color = mon === 'COP' ? '#f5a623' : mon === 'USD' ? '#00c896' : '#5ba0f5';
+        return `<div style="display:grid;grid-template-columns:80px 1fr 80px 80px 120px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:.88rem">
+            <div style="font-weight:600;color:#f0f2ff">${mon}</div>
+            <div style="position:relative;height:8px;background:rgba(255,255,255,0.06);border-radius:4px">
+                <div style="position:absolute;height:100%;background:${color}22;left:${b.minPct}%;width:${b.maxPct-b.minPct}%;border-radius:4px"></div>
+                <div style="position:absolute;height:100%;background:${color};width:${Math.min(b.actualPct,100)}%;border-radius:4px;min-width:2px"></div>
+            </div>
+            <div style="text-align:right;color:#8b90a0">${fP(b.actualPct)}</div>
+            <div style="text-align:right;color:#f0f2ff;font-weight:600">${b.idealPct}%</div>
+            <div style="text-align:center">${EST_BADGE[b.estado]}</div>
+        </div>`;
+    }).join('');
+    const bloqueMoneda = `
+        <div style="background:#141720;border:1px solid #1e2235;border-radius:12px;padding:20px 24px;margin-bottom:16px;width:100%;box-sizing:border-box">
+            <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4a4f64;margin-bottom:12px">💱 Distribución ideal por moneda</div>
+            ${filasM}
+        </div>`;
+
+    // ── B4: Protección ──────────────────────────────────────────────
+    const pr = d.brechas.proteccion;
+    const bloqueProteccion = `
+        <div style="background:#141720;border:1px solid #1e2235;border-radius:12px;padding:20px 24px;margin-bottom:16px;width:100%;box-sizing:border-box">
+            <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4a4f64;margin-bottom:12px">🛡️ Protección patrimonial</div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:10px 16px;flex:1;min-width:140px">
+                    <div style="font-size:.75rem;color:#4a4f64">Protegido actual</div>
+                    <div style="font-size:1.2rem;font-weight:700;color:${pr.pctProtegidoActual >= pr.pctProtegidoMeta ? '#00c896' : '#f97316'}">${fP(pr.pctProtegidoActual)}</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:10px 16px;flex:1;min-width:140px">
+                    <div style="font-size:.75rem;color:#4a4f64">Meta mínima</div>
+                    <div style="font-size:1.2rem;font-weight:700;color:#f0f2ff">${pr.pctProtegidoMeta}%</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:10px 16px;flex:1;min-width:140px">
+                    <div style="font-size:.75rem;color:#4a4f64">Monto a proteger</div>
+                    <div style="font-size:1.2rem;font-weight:700;color:#f0f2ff">${f$(pr.montoAProteger)}</div>
+                </div>
+            </div>
+            ${pr.estructurasRecomendadas.length > 0 ? `<div style="font-size:.85rem;color:#8b90a0">Estructuras recomendadas: <strong style="color:#f0f2ff">${pr.estructurasRecomendadas.join(', ')}</strong></div>` : ''}
+            ${pr.prioridad ? `<div style="font-size:.82rem;color:#5ba0f5;margin-top:4px">→ ${pr.prioridad}</div>` : ''}
+        </div>`;
+
+    // ── B5: Seguros ─────────────────────────────────────────────────
+    const sv = d.brechas.seguroVida, si = d.brechas.seguroInvalidez;
+    const bloqueSeguros = `
+        <div style="background:#141720;border:1px solid #1e2235;border-radius:12px;padding:20px 24px;margin-bottom:16px;width:100%;box-sizing:border-box">
+            <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4a4f64;margin-bottom:12px">🏥 Seguros ideales</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:12px 16px">
+                    <div style="font-size:.82rem;font-weight:600;color:#f0f2ff;margin-bottom:6px">Seguro de Vida</div>
+                    <div style="font-size:.82rem;color:#8b90a0">Requerida: ${f$(sv.coberturaRequerida)}</div>
+                    <div style="font-size:.82rem;color:#8b90a0">Actual: ${f$(sv.coberturaActual)}</div>
+                    <div style="font-size:.95rem;font-weight:700;margin-top:4px;color:${sv.gap > 0 ? '#ff4d6d' : '#00c896'}">${sv.gap > 0 ? `Gap: ${f$(sv.gap)}` : '✅ Cubierto'}</div>
+                    <div style="font-size:.78rem;color:#4a4f64;margin-top:2px">${fP(sv.pctCubierto)} cubierto</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:12px 16px">
+                    <div style="font-size:.82rem;font-weight:600;color:#f0f2ff;margin-bottom:6px">Seguro de Invalidez</div>
+                    <div style="font-size:.82rem;color:#8b90a0">Requerida: ${f$(si.coberturaRequerida)}</div>
+                    <div style="font-size:.82rem;color:#8b90a0">Actual: ${f$(si.coberturaActual)}</div>
+                    <div style="font-size:.95rem;font-weight:700;margin-top:4px;color:${si.gap > 0 ? '#ff4d6d' : '#00c896'}">${si.gap > 0 ? `Gap: ${f$(si.gap)}` : '✅ Cubierto'}</div>
+                    <div style="font-size:.78rem;color:#4a4f64;margin-top:2px">${si.anosProductivos} años productivos restantes</div>
+                </div>
+            </div>
+        </div>`;
+
+    // ── B6: Fondo emergencia ─────────────────────────────────────────
+    const fe = d.brechas.fondoEmergencia;
+    const feColor = fe.estado === 'OPTIMO' ? '#00c896' : fe.estado === 'PARCIAL' ? '#f5a623' : '#ff4d6d';
+    const bloqueFondo = `
+        <div style="background:#141720;border:1px solid #1e2235;border-radius:12px;padding:20px 24px;margin-bottom:16px;width:100%;box-sizing:border-box">
+            <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4a4f64;margin-bottom:12px">💧 Fondo de emergencia ideal</div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap">
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:10px 16px;flex:1;min-width:120px">
+                    <div style="font-size:.75rem;color:#4a4f64">Actual</div>
+                    <div style="font-size:1.1rem;font-weight:700;color:${feColor}">${fe.mesesCubiertos} meses</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:10px 16px;flex:1;min-width:120px">
+                    <div style="font-size:.75rem;color:#4a4f64">Meta</div>
+                    <div style="font-size:1.1rem;font-weight:700;color:#f0f2ff">${fe.metaMeses} meses</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:10px 16px;flex:1;min-width:120px">
+                    <div style="font-size:.75rem;color:#4a4f64">Gap</div>
+                    <div style="font-size:1.1rem;font-weight:700;color:${fe.gapCOP > 0 ? '#ff4d6d' : '#00c896'}">${fe.gapCOP > 0 ? f$(fe.gapCOP) : '✅ Cubierto'}</div>
+                </div>
+            </div>
+        </div>`;
+
+    // ── B7: Independencia financiera ─────────────────────────────────
+    const retiroSost = d.portafolioProductivo * 0.04 / 12;
+    const pctRetVsGastos = d.gastosMes > 0 ? retiroSost/d.gastosMes*100 : 0;
+    const bloqueIF = `
+        <div style="background:#141720;border:1px solid #1e2235;border-radius:12px;padding:20px 24px;margin-bottom:16px;width:100%;box-sizing:border-box">
+            <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4a4f64;margin-bottom:12px">☆ Independencia financiera</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;flex-wrap:wrap">
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:10px">
+                    <div style="font-size:.72rem;color:#4a4f64">Número Mágico</div>
+                    <div style="font-size:1rem;font-weight:700;color:#f0f2ff">${f$(d.numeroMagico)}</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:10px">
+                    <div style="font-size:.72rem;color:#4a4f64">Avance</div>
+                    <div style="font-size:1rem;font-weight:700;color:${d.avanceIF>=50?'#00c896':d.avanceIF>=25?'#f5a623':'#ff4d6d'}">${fP(d.avanceIF)}</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:10px">
+                    <div style="font-size:.72rem;color:#4a4f64">Retiro sostenible</div>
+                    <div style="font-size:1rem;font-weight:700;color:#f0f2ff">${f$(retiroSost)}/mes</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:10px">
+                    <div style="font-size:.72rem;color:#4a4f64">Cobertura gastos</div>
+                    <div style="font-size:1rem;font-weight:700;color:${pctRetVsGastos>=100?'#00c896':'#8b90a0'}">${fP(pctRetVsGastos)}</div>
+                </div>
+            </div>
+        </div>`;
+
+    // ── B8: Fiscal ──────────────────────────────────────────────────
+    const fi = d.brechas.fiscal;
+    const bloqueFiscal = `
+        <div style="background:#141720;border:1px solid #1e2235;border-radius:12px;padding:20px 24px;margin-bottom:16px;width:100%;box-sizing:border-box">
+            <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4a4f64;margin-bottom:12px">📋 Optimización fiscal Art. 126</div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap">
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:10px 16px;flex:1;min-width:140px">
+                    <div style="font-size:.75rem;color:#4a4f64">Cupo efectivo/año</div>
+                    <div style="font-size:1rem;font-weight:700;color:#f0f2ff">${f$(fi.cupoEfectivoAnual)}</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:10px 16px;flex:1;min-width:140px">
+                    <div style="font-size:.75rem;color:#4a4f64">Aprovechado</div>
+                    <div style="font-size:1rem;font-weight:700;color:${fi.pctAprovechado>=80?'#00c896':fi.pctAprovechado>=50?'#f5a623':'#ff4d6d'}">${fP(fi.pctAprovechado)}</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:10px 16px;flex:1;min-width:140px">
+                    <div style="font-size:.75rem;color:#4a4f64">Ahorro anual potencial</div>
+                    <div style="font-size:1rem;font-weight:700;color:#00c896">${f$(fi.ahorroAnualPotencial)}</div>
+                </div>
+            </div>
+            ${fi.cupoNoUtilizado > 0 ? `<div style="font-size:.82rem;color:#f5a623;margin-top:8px">⚠️ Cupo no utilizado: ${f$(fi.cupoNoUtilizado)}/año → aportar ${f$(Math.round(fi.cupoNoUtilizado/12))}/mes a FPV o AFC</div>` : ''}
+        </div>`;
+
+    // ── B9: Deuda ───────────────────────────────────────────────────
+    const de = d.brechas.deuda;
+    const deColor = de.estado === 'OPTIMO' ? '#00c896' : de.estado === 'ALTO' ? '#f5a623' : '#ff4d6d';
+    const bloqueDeuda = de.ratioActual > 0 ? `
+        <div style="background:#141720;border:1px solid #1e2235;border-radius:12px;padding:20px 24px;margin-bottom:16px;width:100%;box-sizing:border-box">
+            <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4a4f64;margin-bottom:12px">💳 Estructura de deuda ideal</div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:10px 16px;flex:1;min-width:120px">
+                    <div style="font-size:.75rem;color:#4a4f64">Ratio actual</div>
+                    <div style="font-size:1.2rem;font-weight:700;color:${deColor}">${fP(de.ratioActual)}</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:10px 16px;flex:1;min-width:120px">
+                    <div style="font-size:.75rem;color:#4a4f64">Meta</div>
+                    <div style="font-size:1.2rem;font-weight:700;color:#f0f2ff">&lt;${de.ratioMaximo}%</div>
+                </div>
+            </div>
+            ${de.deudaImproductiva > 0 ? `<div style="font-size:.85rem;color:#ff4d6d;margin-top:4px">⚠️ Deuda improductiva: ${f$(de.deudaImproductiva)} (${fP(de.pctImproductiva)}) — eliminar primero</div>` : ''}
+        </div>` : '';
+
+    // ── B10: Geográfica ─────────────────────────────────────────────
+    const geo = d.distribucionIdeal.geografica;
+    const geoReglas = d.distribucionIdeal.reglasGeo;
+    const filasGeo = Object.entries(geo||{}).map(([pais,r]) => `
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:.88rem">
+            <span style="color:#f0f2ff;font-weight:600">${pais}</span>
+            <span style="color:#8b90a0">${r.ideal}%${r.max ? ` (máx ${r.max}%)` : ''}${r.min ? ` (mín ${r.min}%)` : ''}</span>
+        </div>`).join('');
+    const bloqueGeo = `
+        <div style="background:#141720;border:1px solid #1e2235;border-radius:12px;padding:20px 24px;margin-bottom:16px;width:100%;box-sizing:border-box">
+            <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4a4f64;margin-bottom:12px">🌎 Distribución geográfica ideal</div>
+            ${filasGeo}
+            ${geoReglas ? `<div style="font-size:.82rem;color:#5ba0f5;margin-top:8px">→ ${geoReglas.meta}</div>` : ''}
+        </div>`;
+
+    container.innerHTML = bloqueCabecera + bloqueTipoActivo + bloqueMoneda + bloqueProteccion + bloqueSeguros + bloqueFondo + bloqueIF + bloqueFiscal + bloqueDeuda + bloqueGeo;
 }

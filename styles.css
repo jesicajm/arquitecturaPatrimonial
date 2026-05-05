@@ -250,6 +250,15 @@ body {
     transition: var(--transition);
     font-family: var(--font-primary);
 }
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color:#6b7280;
+}
+.obj-field input::placeholder,
+.obj-field select::placeholder,
+.obj-field textarea::placeholder {
+    color: #6b7280 !important;
+}
 
 .form-group input:focus,
 .form-group select:focus,
@@ -2027,7 +2036,8 @@ body {
 }
 
 /* Contenedor de opciones */
-#rol-empresarial-group .rol-emp-options {
+#rol-empresarial-group .rol-emp-options,
+#tipo-ingresos-group .rol-emp-options {
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -2035,7 +2045,8 @@ body {
 }
 
 /* Cada opción — estado normal: legible sobre fondo blanco */
-#rol-empresarial-group .rol-emp-option {
+#rol-empresarial-group .rol-emp-option,
+#tipo-ingresos-group .rol-emp-option {
     display: flex;
     align-items: flex-start;
     gap: 10px;
@@ -2048,13 +2059,15 @@ body {
 }
 
 /* Estado hover */
-#rol-empresarial-group .rol-emp-option:hover {
+#rol-empresarial-group .rol-emp-option:hover,
+#tipo-ingresos-group .rol-emp-option:hover {
     background: #eeeeee;
     border-color: #aaaaaa;
 }
 
 /* Dot del radio — estado normal */
-#rol-empresarial-group .rol-emp-radio-dot {
+#rol-empresarial-group .rol-emp-radio-dot,
+#tipo-ingresos-group .rol-emp-radio-dot {
     width: 16px;
     height: 16px;
     min-width: 16px;
@@ -2066,7 +2079,8 @@ body {
 }
 
 /* Etiqueta de la opción — legible sobre fondo gris claro */
-#rol-empresarial-group .rol-emp-label {
+#rol-empresarial-group .rol-emp-label,
+#tipo-ingresos-group .rol-emp-label {
     font-size: 1.3rem;
     font-weight: 600;
     color: #333333;
@@ -2074,26 +2088,30 @@ body {
 }
 
 /* Texto de ayuda — legible sobre fondo blanco */
-#rol-empresarial-group .rol-emp-hint {
+#rol-empresarial-group .rol-emp-hint,
+#tipo-ingresos-group .rol-emp-hint {
     font-size: 1rem;
     color: #666666;
     line-height: 1.35;
 }
 
 /* Estado seleccionado — fondo con color de acento */
-#rol-empresarial-group .rol-emp-option:has(input:checked) {
+#rol-empresarial-group .rol-emp-option:has(input:checked),
+#tipo-ingresos-group .rol-emp-option:has(input:checked) {
     border-color: var(--accent-color);
     background: #e8f1fb;
 }
 
 /* Dot seleccionado */
-#rol-empresarial-group .rol-emp-option input[type="radio"]:checked ~ .rol-emp-radio-dot {
+#rol-empresarial-group .rol-emp-option input[type="radio"]:checked ~ .rol-emp-radio-dot,
+#tipo-ingresos-group .rol-emp-option input[type="radio"]:checked ~ .rol-emp-radio-dot {
     border-color: var(--accent-color);
     background: var(--accent-color);
 }
 
 /* Label seleccionado */
-#rol-empresarial-group .rol-emp-option input[type="radio"]:checked ~ .rol-emp-text .rol-emp-label {
+#rol-empresarial-group .rol-emp-option input[type="radio"]:checked ~ .rol-emp-text .rol-emp-label,
+#tipo-ingresos-group .rol-emp-option input[type="radio"]:checked ~ .rol-emp-text .rol-emp-label {
     color: var(--primary-color);
 }
 
@@ -2505,4 +2523,47 @@ body {
 @media (max-width: 767px) {
     #dashboard-section .db-conc-cop { display: none; }
     #dashboard-section .db-conc-lbl { min-width: 80px; }
+}
+/* ── Dashboard: Bloque Objetivos del Cliente (fondo blanco) ─────────── */
+.dashboard-objetivos {
+    background: #ffffff;
+    border: 1px solid #e0e4ef;
+    border-radius: 12px;
+    padding: 24px;
+    color: #1a1e2e;
+}
+.dashboard-objetivos .obj-titulo {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #4a4f64;
+    margin-bottom: 16px;
+}
+.dashboard-objetivos .obj-nombre {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1e2e;
+}
+.dashboard-objetivos .obj-detalle {
+    font-size: 13px;
+    color: #4a4f64;
+    display: flex;
+    justify-content: space-between;
+    margin: 4px 0;
+}
+.dashboard-objetivos .obj-viable {
+    font-size: 13px;
+    font-weight: 600;
+    color: #00c896;
+}
+.dashboard-objetivos .obj-gap {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ff4d6d;
+}
+.dashboard-objetivos .obj-separador {
+    border: none;
+    border-top: 1px solid #e0e4ef;
+    margin: 16px 0;
 }
