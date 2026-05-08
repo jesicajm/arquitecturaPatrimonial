@@ -1515,13 +1515,28 @@ async function loadDashboardData() {
         renderBloqueScoreFiscal(activos, selectedClientData || {});
         renderResumenConcentraciones(_concData);
 
-        // Log de diagnóstico
-        console.log('📊 Dashboard actualizado:', {
-            patrimonioCOP: metricas.patrimonioCOP,
+        // Log de diagnóstico — verboso para debug
+        console.group('📊 Dashboard recargado');
+        console.log('selectedClientId:', selectedClientId);
+        console.log('Total activos leídos de Firestore:', activos.length);
+        console.table(activos.map(a => ({
+            id:       a.id,
+            descripción: a.description || '',
+            category: a.category || '(vacío)',
+            subtype:  a.subtype  || '(vacío)',
+            value:    a.value,
+            currency: a.currency,
+            updatedAt: a.updatedAt?.seconds
+                ? new Date(a.updatedAt.seconds * 1000).toLocaleString()
+                : '(sin fecha)'
+        })));
+        console.log('Métricas calculadas:', {
+            patrimonioCOP:   metricas.patrimonioCOP,
             ingresosPasivos: metricas.totalIngresosPasivos,
-            mesesLiquidez: metricas.mesesLiquidez,
-            totalActivos: activos.length
+            mesesLiquidez:   metricas.mesesLiquidez,
+            distribucionTipo: metricas.distribucionTipo,
         });
+        console.groupEnd();
 
     } catch (err) {
         console.error('Error loadDashboardData:', err);
