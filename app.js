@@ -518,6 +518,17 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleAdquisicionGroup('');
             // Ocultar seguro pensión
             toggleSeguroPensionGroup('');
+            // Limpiar inputs huérfanos del grupo Adquisición
+            ['asset-valor-adquisicion','asset-fecha-adquisicion']
+                .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            // Limpiar inputs huérfanos del grupo Seguro de pensión con ahorro
+            ['sp-entidad','sp-prima-mensual','sp-objetivo-ahorro',
+             'sp-valor-asegurado','sp-valor-itp','sp-fecha-vencimiento']
+                .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            const _spItpNoCat = document.getElementById('sp-itp-no');
+            if (_spItpNoCat) _spItpNoCat.checked = true;
+            const _spItpValGrpCat = document.getElementById('sp-itp-valor-group');
+            if (_spItpValGrpCat) _spItpValGrpCat.style.display = 'none';
         });
     }
 
@@ -550,8 +561,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             // Adquisición — visible solo para subtipos financieros seleccionados
             toggleAdquisicionGroup(e.target.value);
+            // Si el grupo Adquisición quedó oculto, limpiar sus inputs para no
+            // persistir valores huérfanos en Firestore al guardar.
+            const _adqGrp = document.getElementById('adquisicion-group');
+            if (_adqGrp && _adqGrp.style.display === 'none') {
+                ['asset-valor-adquisicion','asset-fecha-adquisicion']
+                    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            }
             // Seguro de pensión con ahorro — campos específicos
             toggleSeguroPensionGroup(e.target.value);
+            // Si el grupo Seguro de pensión quedó oculto, limpiar sus inputs.
+            const _spGrp = document.getElementById('seguro-pension-group');
+            if (_spGrp && _spGrp.style.display === 'none') {
+                ['sp-entidad','sp-prima-mensual','sp-objetivo-ahorro',
+                 'sp-valor-asegurado','sp-valor-itp','sp-fecha-vencimiento']
+                    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+                const _spItpNoSub = document.getElementById('sp-itp-no');
+                if (_spItpNoSub) _spItpNoSub.checked = true;
+                const _spItpValGrpSub = document.getElementById('sp-itp-valor-group');
+                if (_spItpValGrpSub) _spItpValGrpSub.style.display = 'none';
+            }
             // Sector — visibilidad y valor por defecto según subtipo
             const catVal = document.getElementById('asset-category')?.value || '';
             toggleSectorSection(catVal, e.target.value);
@@ -1440,8 +1469,12 @@ function renderBloqueObjetivosDashboard(activos, clientData, gastosMensualesCOP)
 async function loadDashboardData() {
     if (!selectedClientId) return;
 
-    // ── GUARDA: solo renderizar si el Dashboard está visible ──
-    if (!activeSectionIs('dashboard')) return;
+    // Nota: ya no salimos temprano si el Dashboard no está visible.
+    // Los renders apuntan a DOM que existe aunque la sección esté oculta,
+    // y queremos que tras guardar/editar/eliminar un activo el dashboard
+    // quede actualizado en background. Los call sites que quieran evitar
+    // renders en background (p.ej. TRM, línea ~295) ya envuelven la llamada
+    // con activeSectionIs('dashboard').
 
     try {
         // ── 1. CARGAR ACTIVOS ────────────────────────────
